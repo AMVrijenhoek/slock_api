@@ -15,9 +15,9 @@ using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using Attributes;
 // using IO.Swagger.Security;
 using Microsoft.AspNetCore.Authorization;
+using Attributes;
 using Models;
 
 namespace Controllers

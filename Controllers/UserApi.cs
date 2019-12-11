@@ -15,10 +15,13 @@ using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using Attributes;
 // using IO.Swagger.Security;
 using Microsoft.AspNetCore.Authorization;
+using Attributes;
 using Models;
+using api.db;
+using System.Threading.Tasks;
+
 
 namespace Controllers
 { 
@@ -28,10 +31,14 @@ namespace Controllers
     [ApiController]
     public class UserApiController : ControllerBase
     { 
+        public AppDb Db { get; }
         /// <summary>
         /// change the user object
         /// </summary>
-        
+        public UserApiController(AppDb db){
+            Db = db;
+        }
+
         /// <param name="token"></param>
         /// <param name="body"></param>
         /// <response code="200">success</response>
@@ -74,7 +81,6 @@ namespace Controllers
         public virtual IActionResult LoginUser([FromBody]Login body)
         { 
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            Console.WriteLine("==========================================");
             return StatusCode(200);
 
             //TODO: Uncomment the next line to return response 401 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
@@ -151,9 +157,15 @@ namespace Controllers
         [Route("/v1/register")]
         [ValidateModelState]
         [SwaggerOperation("RegisterUser")]
-        public virtual IActionResult RegisterUser([FromBody]Register body)
+        public async Task<IActionResult> RegisterUser([FromBody]User body)
         { 
+
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
+            await Db.Connection.OpenAsync();
+            body.Db = Db;
+            await body.InsertAsync();
+            return new OkObjectResult(body);
+            
             // return StatusCode(200);
 
             //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...

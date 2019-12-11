@@ -10,6 +10,7 @@
 
 using System;
 using System.Linq;
+using System.Data;
 using System.IO;
 using System.Text;
 using System.Collections;
@@ -18,6 +19,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
+using api.db;
+using MySql.Data.MySqlClient;
+using System.Threading.Tasks;
+
 
 namespace Models
 { 
@@ -28,11 +33,22 @@ namespace Models
     public partial class User : IEquatable<User>
     { 
         /// <summary>
+        /// Gets or Sets is
+        /// </summary>
+        [DataMember(Name="id")]
+        public int Id { get; set; }
+
+        /// <summary>
         /// Gets or Sets Username
         /// </summary>
         [DataMember(Name="username")]
         public string Username { get; set; }
 
+        /// <summary>
+        /// Gets or Sets Password
+        /// </summary>
+        [DataMember(Name="password")]
+        public string Password { get; set; }
         /// <summary>
         /// Gets or Sets FirstName
         /// </summary>
@@ -56,6 +72,82 @@ namespace Models
         /// </summary>
         [DataMember(Name="phone")]
         public string Phone { get; set; }
+
+        /// <summary>
+        /// Gets or Sets Phone
+        /// </summary>
+        [DataMember(Name="salt")]
+        public string Salt { get; set; }
+
+        internal AppDb Db { get; set; }
+
+        public User()
+        {
+        }
+
+        internal User(AppDb db)
+        {
+            Db = db;
+        }
+
+        public async Task InsertAsync()
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText = @"INSERT INTO `users` (`email`, `username`, `password`, 'first_name', 'last_name', 'salt') VALUES (@email, @username, @password, @firstname, @lastname, @salt);";
+            BindParams(cmd);
+            await cmd.ExecuteNonQueryAsync();
+            Id = (int) cmd.LastInsertedId;
+        }
+
+        private void BindId(MySqlCommand cmd)
+        {
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@id",
+                DbType = DbType.Int32,
+                Value = Id,
+            });
+        }
+
+        private void BindParams(MySqlCommand cmd)
+        {
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@email",
+                DbType = DbType.String,
+                Value = Email,
+            });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@username",
+                DbType = DbType.String,
+                Value = Username,
+            });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@password",
+                DbType = DbType.String,
+                Value = Password,
+            });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@firstname",
+                DbType = DbType.String,
+                Value = FirstName,
+            });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@lastname",
+                DbType = DbType.String,
+                Value = LastName,
+            });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@salt",
+                DbType = DbType.String,
+                Value = Salt,
+            });
+        }
 
         /// <summary>
         /// Returns the string presentation of the object
