@@ -99,6 +99,24 @@ namespace Models
             Id = (int) cmd.LastInsertedId;
         }
 
+        public async Task UpdateAsync()
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            // (`email`, `username`, `password`, 'first_name', 'last_name', 'salt') VALUES (@email, @username, @password, @firstname, @lastname, @salt
+            cmd.CommandText = @"UPDATE `users` SET `email` = @email, `username` = @username, `password` = @password, `first_name` = @firstname, `last_name` = @lastname WHERE `id` = @id;";
+            BindParams(cmd);
+            BindId(cmd);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task DeleteAsync()
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText = @"DELETE FROM `users` WHERE `id` = @id;";
+            BindId(cmd);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
         private void BindId(MySqlCommand cmd)
         {
             cmd.Parameters.Add(new MySqlParameter
