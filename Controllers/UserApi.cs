@@ -21,6 +21,7 @@ using Attributes;
 using Models;
 using api.db;
 using System.Threading.Tasks;
+using DevOne.Security.Cryptography.BCrypt;
 
 
 namespace Controllers
@@ -78,19 +79,32 @@ namespace Controllers
         [Route("/v1/login")]
         [ValidateModelState]
         [SwaggerOperation("LoginUser")]
-        public virtual IActionResult LoginUser([FromBody]Login body)
+        public async Task<IActionResult> LoginUser([FromBody]Login body)
         { 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            return StatusCode(200);
+            await Db.Connection.OpenAsync();
 
-            //TODO: Uncomment the next line to return response 401 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(401);
-
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-
-
-            throw new NotImplementedException();
+            string userPasswordDb = "password"; //TODO password stored in the database
+            string userHashDb = "randomhash"; //TODO hash stored in database on user
+            string userIdDB = "userID"; //TODO user_id stored in date base 
+            
+            if (BCryptHelper.CheckPassword(body.Password + userHashDb, userPasswordDb)) //body.Password has to be hashed wit
+            {
+                // generate authentication token (create global unique identifier and base64 encode it)
+                string generatedToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+                
+                /* TODO Add token to logged in user table
+                INSERT INTO loggedInUsers (user_id, date, authorizationToken) 
+                VALUES (get id from user table, CURRENT_TIMESTAMP, generatedToken) */
+                
+                return new OkObjectResult(generatedToken); 
+            }
+            if (!BCryptHelper.CheckPassword(body.Password + userHashDb, userPasswordDb))
+            {
+                return new UnauthorizedObjectResult("Login incorrect");
+            }
+            
+            // return error code if above fails
+            return StatusCode(500);
         }
 
         /// <summary>
