@@ -19,6 +19,8 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Attributes;
 using Models;
+using api.db;
+using System.Threading.Tasks;
 
 namespace Controllers
 { 
@@ -28,6 +30,12 @@ namespace Controllers
     [ApiController]
     public class LocksApiController : ControllerBase
     { 
+        public AppDb Db { get; }
+        
+        public LocksApiController(AppDb db){
+            Db = db;
+        }
+
         /// <summary>
         /// activate a lock
         /// </summary>
@@ -41,16 +49,17 @@ namespace Controllers
         [Route("/v1/locks/{lockId}/activate")]
         [ValidateModelState]
         [SwaggerOperation("LocksLockIdActivatePost")]
-        public virtual IActionResult LocksLockIdActivatePost([FromRoute][Required]string lockId, [FromHeader][Required()]string token, [FromBody]Changelockdetails body)
+        public async Task<IActionResult> LocksLockIdActivatePost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Lock body)
         { 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200);
-
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-
-
-            throw new NotImplementedException();
+            await Db.Connection.OpenAsync();
+            // Get lock we want to update
+            LockQuerry lq = new LockQuerry(Db);
+            var locka = await lq.FindOneAsync(lockId);
+            // Update the lock
+            locka.Location = body.Location;
+            await locka.UpdateAsync();
+            
+            return new OkObjectResult("Lock updated");
         }
 
         /// <summary>
@@ -66,16 +75,17 @@ namespace Controllers
         [Route("/v1/locks/{lockId}/changelockdetails")]
         [ValidateModelState]
         [SwaggerOperation("LocksLockIdChangelockdetailsPost")]
-        public virtual IActionResult LocksLockIdChangelockdetailsPost([FromRoute][Required]string lockId, [FromHeader][Required()]string token, [FromBody]Changelockdetails body)
+        public async Task<IActionResult> LocksLockIdChangelockdetailsPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Lock body)
         { 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200);
-
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-
-
-            throw new NotImplementedException();
+            await Db.Connection.OpenAsync();
+            // Get lock we want to update
+            LockQuerry lq = new LockQuerry(Db);
+            var locka = await lq.FindOneAsync(lockId);
+            // Update the lock
+            locka.Location = body.Location;
+            await locka.UpdateAsync();
+            
+            return new OkObjectResult("Lock updated");
         }
 
         /// <summary>
@@ -258,6 +268,25 @@ namespace Controllers
             : default(Rentedlocks);
             //TODO: Change the data returned
             return new ObjectResult(example);
+        }
+
+        /// <summary>
+        /// register user to system
+        /// </summary>
+        
+        /// <param name="body">User object that needs to be added to the system</param>
+        /// <response code="200">user added</response>
+        /// <response code="500">internal server error</response>
+        [HttpPost]
+        [Route("/v1/addlock")]
+        [ValidateModelState]
+        [SwaggerOperation("AddLock")]
+        public async Task<IActionResult> AddLock([FromBody]Lock body)
+        { 
+            await Db.Connection.OpenAsync();
+            body.Db = Db;
+            await body.InsertAsync();
+            return new OkObjectResult("Lock succesfully made");
         }
     }
 }

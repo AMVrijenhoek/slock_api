@@ -20,7 +20,7 @@ using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
 namespace Models
-{ 
+{
     /// <summary>
     /// 
     /// </summary>
