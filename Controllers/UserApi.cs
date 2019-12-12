@@ -83,13 +83,22 @@ namespace Controllers
         {
             UserQuerry loginUser = new UserQuerry(Db);
             User user = await loginUser.GetUserByEmail(body.Email);
+            LoginsessionQuerry sessions = new LoginsessionQuerry(Db);
 
-            if (BCryptHelper.CheckPassword(body.Password + user.Salt, user.Password)) //body.Password has to be hashed with
+            if (BCryptHelper.CheckPassword(body.Password, user.Password)) //body.Password has to be hashed with
             {
                 // generate authentication token (create global unique identifier and base64 encode it)
                 string generatedToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
                 
-                loginUser.InsertLoginTable(user.Id, generatedToken);
+                // check if there is a session
+                // delete rows with that user_id
+                // insert new one
+                Loginsession session = await sessions.FindOneByUserId(user.Id);
+                if (session != null)
+                {
+                    await session.DeleteAsync();
+                }
+                sessions.InsertLoginTable(user.Id, generatedToken);
                 
                 return new OkObjectResult(generatedToken); 
             }

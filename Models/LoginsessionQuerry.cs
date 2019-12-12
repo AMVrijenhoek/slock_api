@@ -7,19 +7,19 @@ using api.db;
 
 namespace Models
 {
-    public class UserQuerry
+    public class LoginsessionQuerry
     {
         public AppDb Db { get; }
 
-        public UserQuerry(AppDb db)
+        public LoginsessionQuerry(AppDb db)
         {
             Db = db;
         }
 
-        public async Task<User> FindOneAsync(int id)
+        public async Task<Loginsession> FindOneAsync(int id)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT email, username, first_name, last_name FROM `users` WHERE `id` = @id";
+            cmd.CommandText = @"SELECT user_id, creation_date, auth_token FROM `login_session` WHERE `id` = @id";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@id",
@@ -30,20 +30,42 @@ namespace Models
             return result.Count > 0 ? result[0] : null;
         }
         
-        public async Task<User> GetUserByEmail(string email)
+        public async Task<Loginsession> FindOneByUserId(int user_id)
         {
             using var cmd = Db.Connection.CreateCommand();
             cmd.Connection.Open();
-            cmd.CommandText = @"SELECT id, email, username, first_name, last_name, password FROM `users` WHERE `email` = @email";
+            cmd.CommandText = @"SELECT id, creation_date, auth_token FROM `login_session` WHERE `user_id` = @user_id";
             cmd.Parameters.Add(new MySqlParameter
             {
-                ParameterName = "@email",
-                DbType = DbType.String,
-                Value = email,
+                ParameterName = "@user_id",
+                DbType = DbType.Int32,
+                Value = user_id,
             });
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
             cmd.Connection.Close();
             return result.Count > 0 ? result[0] : null;
+        }
+
+        public bool InsertLoginTable(int id, string token)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.Connection.Open();
+            cmd.CommandText = @"INSERT INTO login_session (user_id, creation_date, auth_token) VALUES (@id, CURRENT_TIMESTAMP, @token)";
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@id",
+                DbType = DbType.Int32,
+                Value = id,
+            });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@token",
+                DbType = DbType.String,
+                Value = token,
+            });
+            cmd.ExecuteNonQueryAsync();
+            cmd.Connection.Close();
+            return true;
         }
 
         /*
@@ -64,26 +86,23 @@ namespace Models
         }
         /**/
 
-        private async Task<List<User>> ReadAllAsync(DbDataReader reader)
+        private async Task<List<Loginsession>> ReadAllAsync(DbDataReader reader)
         {
-            var users = new List<User>();
+            var sessions = new List<Loginsession>();
             using (reader)
             {
                 while (await reader.ReadAsync())
                 {
-                    var user = new User(Db)
+                    var session = new Loginsession(Db)
                     {
                         Id = reader.GetInt32(0),
-                        Email = reader.GetString(1),
-                        Username = reader.GetString(2),
-                        FirstName = reader.GetString(3),
-                        LastName = reader.GetString(4),
-                        Password = reader.GetString(5),
+                        creation_date = reader.GetDateTime(1).ToString(),
+                        auth_token = reader.GetString(2),
                     };
-                    users.Add(user);
+                    sessions.Add(session);
                 }
             }
-            return users;
+            return sessions;
         }
         
     }
