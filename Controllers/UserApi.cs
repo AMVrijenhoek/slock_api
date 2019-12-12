@@ -80,31 +80,26 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("LoginUser")]
         public async Task<IActionResult> LoginUser([FromBody]Login body)
-        { 
-            await Db.Connection.OpenAsync();
+        {
+            UserQuerry loginUser = new UserQuerry(Db);
+            User user = await loginUser.GetUserByEmail(body.Email);
 
-            string userPasswordDb = "password"; //TODO password stored in the database
-            string userHashDb = "randomhash"; //TODO hash stored in database on user
-            string userIdDB = "userID"; //TODO user_id stored in date base 
-            
-            if (BCryptHelper.CheckPassword(body.Password + userHashDb, userPasswordDb)) //body.Password has to be hashed wit
+            if (BCryptHelper.CheckPassword(body.Password + user.Salt, user.Password)) //body.Password has to be hashed with
             {
                 // generate authentication token (create global unique identifier and base64 encode it)
                 string generatedToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
                 
-                /* TODO Add token to logged in user table
-                INSERT INTO loggedInUsers (user_id, date, authorizationToken) 
-                VALUES (get id from user table, CURRENT_TIMESTAMP, generatedToken) */
+                loginUser.InsertLoginTable(user.Id, generatedToken);
                 
                 return new OkObjectResult(generatedToken); 
             }
-            if (!BCryptHelper.CheckPassword(body.Password + userHashDb, userPasswordDb))
+            else
             {
                 return new UnauthorizedObjectResult("Login incorrect");
             }
             
-            // return error code if above fails
-            return StatusCode(500);
+//            // return error code if above fails
+//            return StatusCode(500);
         }
 
         /// <summary>

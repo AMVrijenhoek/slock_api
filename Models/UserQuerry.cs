@@ -29,6 +29,40 @@ namespace Models
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
             return result.Count > 0 ? result[0] : null;
         }
+        
+        public async Task<User> GetUserByEmail(string email)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText = @"SELECT id, password, salt FROM `users` WHERE `email` = @email";
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@email",
+                DbType = DbType.String,
+                Value = email,
+            });
+            var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
+            return result.Count > 0 ? result[0] : null;
+        }
+        
+        public bool InsertLoginTable(int id, string token)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText = @"INSERT INTO login_session (user_id, creation_date, auth_token) VALUES (@id, CURRENT_TIMESTAMP, @token)";
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@id",
+                DbType = DbType.Int32,
+                Value = id,
+            });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@token",
+                DbType = DbType.String,
+                Value = token,
+            });
+
+            return true;
+        }
 
         /*
         public async Task<List<BlogPost>> LatestPostsAsync()
