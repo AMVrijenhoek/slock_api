@@ -66,13 +66,13 @@ namespace Models
         /// </summary>
         [DataMember(Name="email")]
         public string Email { get; set; }
-
+        /*
         /// <summary>
         /// Gets or Sets Phone
         /// </summary>
         [DataMember(Name="phone")]
         public string Phone { get; set; }
-
+        /**/
         /// <summary>
         /// Gets or Sets Phone
         /// </summary>
@@ -93,7 +93,7 @@ namespace Models
         public async Task InsertAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"INSERT INTO `users` (`email`, `username`, `password`, 'first_name', 'last_name', 'salt') VALUES (@email, @username, @password, @firstname, @lastname, @salt);";
+            cmd.CommandText = @"INSERT INTO `users` (`email`, `username`, `password`, `first_name`, `last_name`, `salt`) VALUES (@email, @username, @password, @firstname, @lastname, @salt);";
             BindParams(cmd);
             await cmd.ExecuteNonQueryAsync();
             Id = (int) cmd.LastInsertedId;
@@ -102,7 +102,6 @@ namespace Models
         public async Task UpdateAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            // (`email`, `username`, `password`, 'first_name', 'last_name', 'salt') VALUES (@email, @username, @password, @firstname, @lastname, @salt
             cmd.CommandText = @"UPDATE `users` SET `email` = @email, `username` = @username, `password` = @password, `first_name` = @firstname, `last_name` = @lastname WHERE `id` = @id;";
             BindParams(cmd);
             BindId(cmd);
@@ -179,7 +178,7 @@ namespace Models
             sb.Append("  FirstName: ").Append(FirstName).Append("\n");
             sb.Append("  LastName: ").Append(LastName).Append("\n");
             sb.Append("  Email: ").Append(Email).Append("\n");
-            sb.Append("  Phone: ").Append(Phone).Append("\n");
+            // sb.Append("  Phone: ").Append(Phone).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }
@@ -235,12 +234,13 @@ namespace Models
                     Email == other.Email ||
                     Email != null &&
                     Email.Equals(other.Email)
-                ) && 
-                (
-                    Phone == other.Phone ||
-                    Phone != null &&
-                    Phone.Equals(other.Phone)
                 );
+                // && 
+                // (
+                //     Phone == other.Phone ||
+                //     Phone != null &&
+                //     Phone.Equals(other.Phone)
+                // );
         }
 
         /// <summary>
@@ -261,8 +261,8 @@ namespace Models
                     hashCode = hashCode * 59 + LastName.GetHashCode();
                     if (Email != null)
                     hashCode = hashCode * 59 + Email.GetHashCode();
-                    if (Phone != null)
-                    hashCode = hashCode * 59 + Phone.GetHashCode();
+                    // if (Phone != null)
+                    // hashCode = hashCode * 59 + Phone.GetHashCode();
                 return hashCode;
             }
         }
