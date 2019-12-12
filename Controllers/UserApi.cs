@@ -32,13 +32,15 @@ namespace Controllers
     public class UserApiController : ControllerBase
     { 
         public AppDb Db { get; }
-        /// <summary>
-        /// change the user object
-        /// </summary>
+        
         public UserApiController(AppDb db){
             Db = db;
         }
 
+
+        /// <summary>
+        /// change the user object
+        /// </summary>
         /// <param name="token"></param>
         /// <param name="body"></param>
         /// <response code="200">success</response>
@@ -159,20 +161,10 @@ namespace Controllers
         [SwaggerOperation("RegisterUser")]
         public async Task<IActionResult> RegisterUser([FromBody]User body)
         { 
-
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             await Db.Connection.OpenAsync();
             body.Db = Db;
             await body.InsertAsync();
-            return new OkObjectResult(body);
-            
-            // return StatusCode(200);
-
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-
-
-            throw new NotImplementedException();
+            return new OkObjectResult("Account succesfully made");
         }
     }
 }
