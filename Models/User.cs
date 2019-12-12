@@ -22,6 +22,8 @@ using Newtonsoft.Json;
 using api.db;
 using MySql.Data.MySqlClient;
 using System.Threading.Tasks;
+using DevOne.Security.Cryptography.BCrypt;
+using Swashbuckle.AspNetCore.Swagger;
 
 
 namespace Models
@@ -73,11 +75,6 @@ namespace Models
         [DataMember(Name="phone")]
         public string Phone { get; set; }
         /**/
-        /// <summary>
-        /// Gets or Sets Phone
-        /// </summary>
-        [DataMember(Name="salt")]
-        public string Salt { get; set; }
 
         internal AppDb Db { get; set; }
 
@@ -93,7 +90,7 @@ namespace Models
         public async Task InsertAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"INSERT INTO `users` (`email`, `username`, `password`, `first_name`, `last_name`, `salt`) VALUES (@email, @username, @password, @firstname, @lastname, @salt);";
+            cmd.CommandText = @"INSERT INTO `users` (`email`, `username`, `password`, `first_name`, `last_name`) VALUES (@email, @username, @password, @firstname, @lastname);";
             BindParams(cmd);
             await cmd.ExecuteNonQueryAsync();
             Id = (int) cmd.LastInsertedId;
@@ -115,6 +112,12 @@ namespace Models
             BindId(cmd);
             await cmd.ExecuteNonQueryAsync();
         }
+
+        public void HashPass()
+        {
+            var salt = BCryptHelper.GenerateSalt(13);
+            Password =BCryptHelper.HashPassword(Password, salt);
+        } 
 
         private void BindId(MySqlCommand cmd)
         {
@@ -157,12 +160,6 @@ namespace Models
                 ParameterName = "@lastname",
                 DbType = DbType.String,
                 Value = LastName,
-            });
-            cmd.Parameters.Add(new MySqlParameter
-            {
-                ParameterName = "@salt",
-                DbType = DbType.String,
-                Value = Salt,
             });
         }
 

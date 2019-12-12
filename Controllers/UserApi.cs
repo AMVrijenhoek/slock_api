@@ -87,30 +87,34 @@ namespace Controllers
             User user = await loginUser.GetUserByEmail(body.Email);
             LoginsessionQuerry sessions = new LoginsessionQuerry(Db);
 
-            if (BCryptHelper.CheckPassword(body.Password, user.Password)) //body.Password has to be hashed with
+            if (user != null)
             {
-                // generate authentication token (create global unique identifier and base64 encode it)
-                string generatedToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-                
-                // check if there is a session
-                // delete rows with that user_id
-                // insert new one
-                Loginsession session = await sessions.FindOneByUserId(user.Id);
-                if (session != null)
+                if (BCryptHelper.CheckPassword(body.Password, user.Password)) //body.Password has to be hashed with
                 {
-                    await session.DeleteAsync();
+                    // generate authentication token (create global unique identifier and base64 encode it)
+                    string generatedToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+
+                    // check if there is a session
+                    // delete rows with that user_id
+                    // insert new one
+                    Loginsession session = await sessions.FindOneByUserId(user.Id);
+                    if (session != null)
+                    {
+                        await session.DeleteAsync();
+                    }
+
+                    sessions.InsertLoginTable(user.Id, generatedToken);
+
+                    return new OkObjectResult(generatedToken);
                 }
-                sessions.InsertLoginTable(user.Id, generatedToken);
-                
-                return new OkObjectResult(generatedToken); 
+                else
+                {
+                    return new UnauthorizedObjectResult("Login incorrect");
+                }
             }
-            else
-            {
-                return new UnauthorizedObjectResult("Login incorrect");
-            }
-            
+
 //            // return error code if above fails
-//            return StatusCode(500);
+            return new BadRequestObjectResult("User not found");
         }
 
         /// <summary>
@@ -179,10 +183,18 @@ namespace Controllers
         [SwaggerOperation("RegisterUser")]
         public async Task<IActionResult> RegisterUser([FromBody]User body)
         { 
-            await Db.Connection.OpenAsync();
-            body.Db = Db;
-            await body.InsertAsync();
-            return new OkObjectResult("Account succesfully made");
+            UserQuerry loginUser = new UserQuerry(Db);
+            User user = await loginUser.GetUserByEmail(body.Email);
+
+            if (user == null)
+            {
+                await Db.Connection.OpenAsync();
+                body.Db = Db;
+                body.HashPass();
+                await body.InsertAsync();
+                return new OkObjectResult("Account succesfully made");
+            }
+            return new BadRequestObjectResult("Account already exists");
         }
     }
 }
