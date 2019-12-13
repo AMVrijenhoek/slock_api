@@ -45,6 +45,22 @@ namespace Models
             cmd.Connection.Close();
             return result.Count > 0 ? result[0] : null;
         }
+        
+        public async Task<User> CheckIfUsernameExists(string username)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.Connection.Open();
+            cmd.CommandText = @"SELECT id, email, username, first_name, last_name, password FROM `users` WHERE `username` = @username";
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@username",
+                DbType = DbType.String,
+                Value = username,
+            });
+            var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
+            cmd.Connection.Close();
+            return result.Count > 0 ? result[0] : null;
+        }
 
         /*
         public async Task<List<BlogPost>> LatestPostsAsync()

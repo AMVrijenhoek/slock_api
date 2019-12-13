@@ -116,8 +116,13 @@ namespace Models
         public void HashPass()
         {
             var salt = BCryptHelper.GenerateSalt(13);
-            Password =BCryptHelper.HashPassword(Password, salt);
-        } 
+            Password = BCryptHelper.HashPassword(Password, salt);
+        }
+
+        public void EmailToLowerCase()
+        {
+            Email = Email.ToLower();
+        }
 
         private void BindId(MySqlCommand cmd)
         {

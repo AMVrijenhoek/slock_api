@@ -83,9 +83,13 @@ namespace Controllers
         [SwaggerOperation("LoginUser")]
         public async Task<IActionResult> LoginUser([FromBody]Login body)
         {
+            var lowerEmail = body.Email.ToLower();
+            
             UserQuerry loginUser = new UserQuerry(Db);
-            User user = await loginUser.GetUserByEmail(body.Email);
+            User user = await loginUser.GetUserByEmail(lowerEmail);
             LoginsessionQuerry sessions = new LoginsessionQuerry(Db);
+
+            
 
             if (user != null)
             {
@@ -182,17 +186,20 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("RegisterUser")]
         public async Task<IActionResult> RegisterUser([FromBody]User body)
-        { 
+        {
+            body.EmailToLowerCase();
+            
             UserQuerry loginUser = new UserQuerry(Db);
             User user = await loginUser.GetUserByEmail(body.Email);
+            User user2 = await loginUser.CheckIfUsernameExists(body.Username);
 
-            if (user == null)
+            if (user == null && user2 == null)
             {
                 await Db.Connection.OpenAsync();
-                body.Db = Db;
-                body.HashPass();
-                await body.InsertAsync();
-                return new OkObjectResult("Account succesfully made");
+                    body.Db = Db;
+                    body.HashPass();
+                    await body.InsertAsync();
+                    return new OkObjectResult("Account succesfully made");
             }
             return new BadRequestObjectResult("Account already exists");
         }
