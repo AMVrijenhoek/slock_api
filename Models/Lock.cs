@@ -58,8 +58,8 @@ namespace Models
         /// <summary>
         /// Gets or Sets Address
         /// </summary>
-        [DataMember(Name="location")]
-        public string Location { get; set; }
+        [DataMember(Name="Description")]
+        public string Description { get; set; }
 
         internal AppDb Db { get; set; }
 
@@ -72,7 +72,7 @@ namespace Models
         public async Task InsertAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"INSERT INTO `locks` (`owner_id`, `ratchet_key`, `ratchet_counter`, `location`) VALUES (@owner_id, @ratchet_key, @ratchet_counter, @location);";
+            cmd.CommandText = @"INSERT INTO `locks` (`owner_id`, `ratchet_key`, `ratchet_counter`, `description`) VALUES (@owner_id, @ratchet_key, @ratchet_counter, @description);";
             BindParams(cmd);
             await cmd.ExecuteNonQueryAsync();
             Id = (int) cmd.LastInsertedId;
@@ -81,7 +81,7 @@ namespace Models
         public async Task UpdateAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"UPDATE `locks` SET `owner_id` = @owner_id, `ratchet_key` = @ratchet_key, `ratchet_counter` = @ratchet_counter, `location` = @location WHERE `id` = @id;";
+            cmd.CommandText = @"UPDATE `locks` SET `owner_id` = @owner_id, `ratchet_key` = @ratchet_key, `ratchet_counter` = @ratchet_counter, `description` = @description WHERE `id` = @id;";
             BindParams(cmd);
             BindId(cmd);
             await cmd.ExecuteNonQueryAsync();
@@ -119,9 +119,9 @@ namespace Models
             });
             cmd.Parameters.Add(new MySqlParameter
             {
-                ParameterName = "@location",
+                ParameterName = "@description",
                 DbType = DbType.String,
-                Value = Location,
+                Value = Description,
             });
         }
 
@@ -138,7 +138,7 @@ namespace Models
             sb.Append("  ownerid: ").Append(OwnerId).Append("\n");
             sb.Append("  RachetKey: ").Append(RachetKey).Append("\n");
             sb.Append("  RatchetCounter: ").Append(RatchetCounter).Append("\n");
-            sb.Append("  Location: ").Append(Location).Append("\n");
+            sb.Append("  Description: ").Append(Description).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }
@@ -182,9 +182,9 @@ namespace Models
                     OwnerId == other.OwnerId
                 ) && 
                 (
-                    Location == other.Location ||
-                    Location != null &&
-                    Location.Equals(other.Location)
+                    Description == other.Description ||
+                    Description != null &&
+                    Description.Equals(other.Description)
                 ) && 
                 (
                     RachetKey == other.RachetKey ||
@@ -212,8 +212,8 @@ namespace Models
                     hashCode = hashCode * 59 + RachetKey.GetHashCode();
                     if (RatchetCounter != null)
                     hashCode = hashCode * 59 + RatchetCounter.GetHashCode();
-                    if (Location != null)
-                    hashCode = hashCode * 59 + Location.GetHashCode();
+                    if (Description != null)
+                    hashCode = hashCode * 59 + Description.GetHashCode();
                 return hashCode;
             }
         }

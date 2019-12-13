@@ -49,17 +49,9 @@ namespace Controllers
         [Route("/v1/locks/{lockId}/activate")]
         [ValidateModelState]
         [SwaggerOperation("LocksLockIdActivatePost")]
-        public async Task<IActionResult> LocksLockIdActivatePost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Lock body)
+        public /*async*/ Task<IActionResult> LocksLockIdActivatePost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Lock body)
         { 
-            await Db.Connection.OpenAsync();
-            // Get lock we want to update
-            LockQuerry lq = new LockQuerry(Db);
-            var locka = await lq.FindOneAsync(lockId);
-            // Update the lock
-            locka.Location = body.Location;
-            await locka.UpdateAsync();
-            
-            return new OkObjectResult("Lock updated");
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -74,15 +66,15 @@ namespace Controllers
         [HttpPost]
         [Route("/v1/locks/{lockId}/changelockdetails")]
         [ValidateModelState]
-        [SwaggerOperation("LocksLockIdChangelockdetailsPost")]
-        public async Task<IActionResult> LocksLockIdChangelockdetailsPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Lock body)
+        [SwaggerOperation("ChangelockdetailsPost")]
+        public async Task<IActionResult> ChangelockdetailsPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Lock body)
         { 
             await Db.Connection.OpenAsync();
             // Get lock we want to update
             LockQuerry lq = new LockQuerry(Db);
             var locka = await lq.FindOneAsync(lockId);
             // Update the lock
-            locka.Location = body.Location;
+            locka.Description = body.Description;
             await locka.UpdateAsync();
             
             return new OkObjectResult("Lock updated");
@@ -99,17 +91,18 @@ namespace Controllers
         [HttpPost]
         [Route("/v1/locks/{lockId}/deactivate")]
         [ValidateModelState]
-        [SwaggerOperation("LocksLockIdDeactivatePost")]
-        public virtual IActionResult LocksLockIdDeactivatePost([FromRoute][Required]string lockId, [FromHeader][Required()]string token)
+        [SwaggerOperation("DeactivatePost")]
+        public async Task<IActionResult> DeactivatePost([FromRoute][Required]int lockId, [FromHeader][Required()]string token)
         { 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200);
-
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-
-
-            throw new NotImplementedException();
+            await Db.Connection.OpenAsync();
+            // Get lock we want to update
+            LockQuerry lq = new LockQuerry(Db);
+            var locka = await lq.FindOneAsync(lockId);
+            // Update the lock
+            locka.OwnerId = null;
+            await locka.UpdateAsync();
+            
+            return new OkObjectResult("Lock updated");
         }
 
         /// <summary>
@@ -123,8 +116,8 @@ namespace Controllers
         [HttpGet]
         [Route("/v1/locks/{lockId}/ratchettick")]
         [ValidateModelState]
-        [SwaggerOperation("LocksLockIdRatchettickGet")]
-        public virtual IActionResult LocksLockIdRatchettickGet([FromRoute][Required]string lockId, [FromHeader][Required()]string token)
+        [SwaggerOperation("IncrementRatchettickGet")]
+        public virtual IActionResult IncrementRatchettickGet([FromRoute][Required]string lockId, [FromHeader][Required()]string token)
         { 
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200);
@@ -222,22 +215,15 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("MeOwnedlocksGet")]
         [SwaggerResponse(statusCode: 200, type: typeof(Ownedlocks), description: "succes")]
-        public virtual IActionResult MeOwnedlocksGet([FromHeader][Required()]string token)
-        { 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(Ownedlocks));
+        public async Task<IActionResult> MeOwnedlocksGet([FromHeader][Required()]string token)
+        {
+            await Db.Connection.OpenAsync();
+            // TODO get onwer id based on token
+            LockQuerry manager = new LockQuerry(Db);
+            var locks = manager.FindLocksByOwnerAsync(1);
 
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-
-            string exampleJson = null;
-            exampleJson = "\"\"";
-            
-            var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<Ownedlocks>(exampleJson)
-            : default(Ownedlocks);
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+            // return new ObjectResult(locks);
+            return new OkObjectResult(locks);
         }
 
         /// <summary>

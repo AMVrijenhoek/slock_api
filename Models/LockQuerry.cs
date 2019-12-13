@@ -19,7 +19,7 @@ namespace Models
         public async Task<Lock> FindOneAsync(int id)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, location FROM `locks` WHERE `id` = @id";
+            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description FROM `locks` WHERE `id` = @id";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@id",
@@ -28,6 +28,20 @@ namespace Models
             });
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
             return result.Count > 0 ? result[0] : null;
+        }
+
+        public async Task<List<Lock>> FindLocksByOwnerAsync(int ownerid)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description FROM `locks` WHERE `owner_id` = @ownerid";
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@ownerid",
+                DbType = DbType.Int32,
+                Value = ownerid
+            });
+            var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
+            return result;
         }
 
         /*
@@ -61,7 +75,7 @@ namespace Models
                         OwnerId = reader.IsDBNull(1) ? (int?) null : reader.GetInt32(1),
                         RachetKey = reader.IsDBNull(2) ? (string) null : reader.GetString(2),
                         RatchetCounter = reader.IsDBNull(3) ? (string) null : reader.GetString(3),
-                        Location = reader.IsDBNull(4) ? (string) null : reader.GetString(4),
+                        Description = reader.IsDBNull(4) ? (string) null : reader.GetString(4),
                     };
                     locks.Add(door);
                 }
