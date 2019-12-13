@@ -90,11 +90,9 @@ namespace Models
         public async Task DeleteAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.Connection.Open();
             cmd.CommandText = @"DELETE FROM `login_session` WHERE `id` = @id;";
             BindId(cmd);
             await cmd.ExecuteNonQueryAsync();
-            cmd.Connection.Close();
         }
 
         private void BindId(MySqlCommand cmd)

@@ -33,7 +33,6 @@ namespace Models
         public async Task<User> GetUserByEmail(string email)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.Connection.Open();
             cmd.CommandText = @"SELECT id, email, username, first_name, last_name, password FROM `users` WHERE `email` = @email";
             cmd.Parameters.Add(new MySqlParameter
             {
@@ -42,14 +41,12 @@ namespace Models
                 Value = email,
             });
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
-            cmd.Connection.Close();
             return result.Count > 0 ? result[0] : null;
         }
         
         public async Task<User> CheckIfUsernameExists(string username)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.Connection.Open();
             cmd.CommandText = @"SELECT id, email, username, first_name, last_name, password FROM `users` WHERE `username` = @username";
             cmd.Parameters.Add(new MySqlParameter
             {
@@ -58,7 +55,6 @@ namespace Models
                 Value = username,
             });
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
-            cmd.Connection.Close();
             return result.Count > 0 ? result[0] : null;
         }
 
@@ -90,11 +86,11 @@ namespace Models
                     var user = new User(Db)
                     {
                         Id = reader.GetInt32(0),
-                        Email = reader.GetString(1),
-                        Username = reader.GetString(2),
-                        FirstName = reader.GetString(3),
-                        LastName = reader.GetString(4),
-                        Password = reader.GetString(5),
+                        Email = reader.IsDBNull(1) ? (string) null : reader.GetString(1),
+                        Username = reader.IsDBNull(2) ? (string) null : reader.GetString(2),
+                        FirstName = reader.IsDBNull(3) ? (string) null : reader.GetString(3),
+                        LastName = reader.IsDBNull(4) ? (string) null : reader.GetString(4),
+                        Password = reader.IsDBNull(5) ? (string) null : reader.GetString(5),
                     };
                     users.Add(user);
                 }

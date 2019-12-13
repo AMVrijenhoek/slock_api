@@ -30,26 +30,23 @@ namespace Models
             return result.Count > 0 ? result[0] : null;
         }
         
-        public async Task<Loginsession> FindOneByUserId(int user_id)
+        public async Task<Loginsession> FindOneByUserId(int userId)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.Connection.Open();
             cmd.CommandText = @"SELECT id, creation_date, auth_token FROM `login_session` WHERE `user_id` = @user_id";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@user_id",
                 DbType = DbType.Int32,
-                Value = user_id,
+                Value = userId,
             });
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
-            cmd.Connection.Close();
             return result.Count > 0 ? result[0] : null;
         }
 
         public bool InsertLoginTable(int id, string token)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.Connection.Open();
             cmd.CommandText = @"INSERT INTO login_session (user_id, creation_date, auth_token) VALUES (@id, CURRENT_TIMESTAMP, @token)";
             cmd.Parameters.Add(new MySqlParameter
             {
@@ -64,7 +61,6 @@ namespace Models
                 Value = token,
             });
             cmd.ExecuteNonQueryAsync();
-            cmd.Connection.Close();
             return true;
         }
 

@@ -83,13 +83,14 @@ namespace Controllers
         [SwaggerOperation("LoginUser")]
         public async Task<IActionResult> LoginUser([FromBody]Login body)
         {
+            // email should always be lower case
             var lowerEmail = body.Email.ToLower();
-            
+            // Establish database connection
+            await Db.Connection.OpenAsync();
             UserQuerry loginUser = new UserQuerry(Db);
+
             User user = await loginUser.GetUserByEmail(lowerEmail);
             LoginsessionQuerry sessions = new LoginsessionQuerry(Db);
-
-            
 
             if (user != null)
             {
@@ -116,8 +117,7 @@ namespace Controllers
                     return new UnauthorizedObjectResult("Login incorrect");
                 }
             }
-
-//            // return error code if above fails
+            // return error code if above fails
             return new BadRequestObjectResult("User not found");
         }
 
@@ -187,19 +187,24 @@ namespace Controllers
         [SwaggerOperation("RegisterUser")]
         public async Task<IActionResult> RegisterUser([FromBody]User body)
         {
+            // Email should always be lowercase
             body.EmailToLowerCase();
-            
+
+            // Open database connection
+            await Db.Connection.OpenAsync();
             UserQuerry loginUser = new UserQuerry(Db);
+
+            // Check if there is already an user with this email or username
             User user = await loginUser.GetUserByEmail(body.Email);
             User user2 = await loginUser.CheckIfUsernameExists(body.Username);
 
             if (user == null && user2 == null)
             {
-                await Db.Connection.OpenAsync();
-                    body.Db = Db;
-                    body.HashPass();
-                    await body.InsertAsync();
-                    return new OkObjectResult("Account succesfully made");
+                // Save new user
+                body.Db = Db;
+                body.HashPass();
+                await body.InsertAsync();
+                return new OkObjectResult("Account succesfully made");
             }
             return new BadRequestObjectResult("Account already exists");
         }
