@@ -68,6 +68,12 @@ namespace Models
         /// </summary>
         [DataMember(Name="email")]
         public string Email { get; set; }
+        
+        /// <summary>
+        /// Gets or Sets verified
+        /// </summary>
+        [DataMember(Name="verified")]
+        public string Verified { get; set; }
         /*
         /// <summary>
         /// Gets or Sets Phone
@@ -90,7 +96,7 @@ namespace Models
         public async Task InsertAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"INSERT INTO `users` (`email`, `username`, `password`, `first_name`, `last_name`) VALUES (@email, @username, @password, @firstname, @lastname);";
+            cmd.CommandText = @"INSERT INTO `users` (`email`, `username`, `password`, `first_name`, `last_name`, `verified`) VALUES (@email, @username, @password, @firstname, @lastname, @verified);";
             BindParams(cmd);
             await cmd.ExecuteNonQueryAsync();
             Id = (int) cmd.LastInsertedId;
@@ -166,6 +172,12 @@ namespace Models
                 DbType = DbType.String,
                 Value = LastName,
             });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@verified",
+                DbType = DbType.String,
+                Value = Verified,
+            });
         }
 
         /// <summary>
@@ -180,6 +192,7 @@ namespace Models
             sb.Append("  FirstName: ").Append(FirstName).Append("\n");
             sb.Append("  LastName: ").Append(LastName).Append("\n");
             sb.Append("  Email: ").Append(Email).Append("\n");
+            sb.Append("  verified: ").Append(Verified).Append("\n");
             // sb.Append("  Phone: ").Append(Phone).Append("\n");
             sb.Append("}\n");
             return sb.ToString();

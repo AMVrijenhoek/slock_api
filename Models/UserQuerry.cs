@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.IO.Pipelines;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 using api.db;
@@ -34,7 +36,7 @@ namespace Models
         {
             using var cmd = Db.Connection.CreateCommand();
             cmd.Connection.Open();
-            cmd.CommandText = @"SELECT id, email, username, first_name, last_name, password FROM `users` WHERE `email` = @email";
+            cmd.CommandText = @"SELECT id, email, username, first_name, last_name, password, verified FROM `users` WHERE `email` = @email";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@email",
@@ -50,7 +52,7 @@ namespace Models
         {
             using var cmd = Db.Connection.CreateCommand();
             cmd.Connection.Open();
-            cmd.CommandText = @"SELECT id, email, username, first_name, last_name, password FROM `users` WHERE `username` = @username";
+            cmd.CommandText = @"SELECT id, email, username, first_name, last_name, password, verified FROM `users` WHERE `username` = @username";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@username",
@@ -60,6 +62,21 @@ namespace Models
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
             cmd.Connection.Close();
             return result.Count > 0 ? result[0] : null;
+        }
+
+        public void Verified(string verified)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.Connection.Open();
+            cmd.CommandText = @"UPDATE `users` SET verified = 'true' WHERE `verified` = @verified;";
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@verified",
+                DbType = DbType.String,
+                Value = verified,
+            });
+            cmd.ExecuteReaderAsync();
+            cmd.Connection.Close();
         }
 
         /*
@@ -95,6 +112,7 @@ namespace Models
                         FirstName = reader.GetString(3),
                         LastName = reader.GetString(4),
                         Password = reader.GetString(5),
+                        Verified = reader.GetString(6),
                     };
                     users.Add(user);
                 }

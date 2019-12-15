@@ -15,6 +15,8 @@ using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
+using System.Net;
+using System.Net.Http;
 // using IO.Swagger.Security;
 using Microsoft.AspNetCore.Authorization;
 using Attributes;
@@ -22,19 +24,21 @@ using Models;
 using api.db;
 using System.Threading.Tasks;
 using DevOne.Security.Cryptography.BCrypt;
+using Microsoft.AspNetCore.Http;
 
 
 namespace Controllers
-{ 
+{
     /// <summary>
     /// 
     /// </summary>
     [ApiController]
     public class UserApiController : ControllerBase
-    { 
+    {
         public AppDb Db { get; }
-        
-        public UserApiController(AppDb db){
+
+        public UserApiController(AppDb db)
+        {
             Db = db;
         }
 
@@ -51,8 +55,9 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("ChangeDetails")]
         [SwaggerResponse(statusCode: 200, type: typeof(User), description: "success")]
-        public virtual IActionResult ChangeDetails([FromHeader][Required()]string token, [FromBody]Userdetailchange body)
-        { 
+        public virtual IActionResult ChangeDetails([FromHeader] [Required()] string token,
+            [FromBody] Userdetailchange body)
+        {
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200, default(User));
 
@@ -60,11 +65,12 @@ namespace Controllers
             // return StatusCode(500);
 
             string exampleJson = null;
-            exampleJson = "{\n  \"firstName\" : \"firstName\",\n  \"lastName\" : \"lastName\",\n  \"phone\" : \"phone\",\n  \"email\" : \"email\",\n  \"username\" : \"username\"\n}";
-            
+            exampleJson =
+                "{\n  \"firstName\" : \"firstName\",\n  \"lastName\" : \"lastName\",\n  \"phone\" : \"phone\",\n  \"email\" : \"email\",\n  \"username\" : \"username\"\n}";
+
             var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<User>(exampleJson)
-            : default(User);
+                ? JsonConvert.DeserializeObject<User>(exampleJson)
+                : default(User);
             //TODO: Change the data returned
             return new ObjectResult(example);
         }
@@ -72,7 +78,7 @@ namespace Controllers
         /// <summary>
         /// login as a user
         /// </summary>
-        
+
         /// <param name="body">email of account</param>
         /// <response code="200">return auth token / cookie</response>
         /// <response code="401">Unauthorized</response>
@@ -81,41 +87,47 @@ namespace Controllers
         [Route("/v1/login")]
         [ValidateModelState]
         [SwaggerOperation("LoginUser")]
-        public async Task<IActionResult> LoginUser([FromBody]Login body)
+        public async Task<IActionResult> LoginUser([FromBody] Login body)
         {
-            var lowerEmail = body.Email.ToLower();
-            
-            UserQuerry loginUser = new UserQuerry(Db);
-            User user = await loginUser.GetUserByEmail(lowerEmail);
-            LoginsessionQuerry sessions = new LoginsessionQuerry(Db);
+            body.Email = body.Email.ToLower();;
 
-            
+            UserQuerry loginUser = new UserQuerry(Db);
+            User user = await loginUser.GetUserByEmail(body.Email);
+            LoginsessionQuerry sessions = new LoginsessionQuerry(Db);
 
             if (user != null)
             {
-                if (BCryptHelper.CheckPassword(body.Password, user.Password)) //body.Password has to be hashed with
+                if (user.Verified == "true")
                 {
-                    // generate authentication token (create global unique identifier and base64 encode it)
-                    string generatedToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-
-                    // check if there is a session
-                    // delete rows with that user_id
-                    // insert new one
-                    Loginsession session = await sessions.FindOneByUserId(user.Id);
-                    if (session != null)
+                    if (BCryptHelper.CheckPassword(body.Password, user.Password)) //body.Password has to be hashed with
                     {
-                        await session.DeleteAsync();
+                        // generate authentication token (create global unique identifier and base64 encode it)
+                        string generatedToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+
+                        // check if there is a session
+                        // delete rows with that user_id
+                        // insert new one
+                        Loginsession session = await sessions.FindOneByUserId(user.Id);
+                        if (session != null)
+                        {
+                            await session.DeleteAsync();
+                        }
+
+                        sessions.InsertLoginTable(user.Id, generatedToken);
+
+                        return new OkObjectResult(generatedToken);
                     }
-
-                    sessions.InsertLoginTable(user.Id, generatedToken);
-
-                    return new OkObjectResult(generatedToken);
+                    else
+                    {
+                        return new UnauthorizedObjectResult("Login incorrect");
+                    }
                 }
                 else
                 {
-                    return new UnauthorizedObjectResult("Login incorrect");
+                    return new UnauthorizedObjectResult("Account not verified");
                 }
             }
+
 
 //            // return error code if above fails
             return new BadRequestObjectResult("User not found");
@@ -124,7 +136,7 @@ namespace Controllers
         /// <summary>
         /// logout user
         /// </summary>
-        
+
         /// <param name="token"></param>
         /// <response code="200">success</response>
         /// <response code="500">server error</response>
@@ -132,8 +144,8 @@ namespace Controllers
         [Route("/v1/logout")]
         [ValidateModelState]
         [SwaggerOperation("LogoutGet")]
-        public virtual IActionResult LogoutGet([FromHeader][Required()]string token)
-        { 
+        public virtual IActionResult LogoutGet([FromHeader] [Required()] string token)
+        {
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200);
 
@@ -147,7 +159,7 @@ namespace Controllers
         /// <summary>
         /// get user object
         /// </summary>
-        
+
         /// <param name="token"></param>
         /// <response code="200">success</response>
         /// <response code="500">server error</response>
@@ -156,8 +168,8 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("MeGet")]
         [SwaggerResponse(statusCode: 200, type: typeof(User), description: "success")]
-        public virtual IActionResult MeGet([FromHeader][Required()]string token)
-        { 
+        public virtual IActionResult MeGet([FromHeader] [Required()] string token)
+        {
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200, default(User));
 
@@ -165,11 +177,12 @@ namespace Controllers
             // return StatusCode(500);
 
             string exampleJson = null;
-            exampleJson = "{\n  \"firstName\" : \"firstName\",\n  \"lastName\" : \"lastName\",\n  \"phone\" : \"phone\",\n  \"email\" : \"email\",\n  \"username\" : \"username\"\n}";
-            
+            exampleJson =
+                "{\n  \"firstName\" : \"firstName\",\n  \"lastName\" : \"lastName\",\n  \"phone\" : \"phone\",\n  \"email\" : \"email\",\n  \"username\" : \"username\"\n}";
+
             var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<User>(exampleJson)
-            : default(User);
+                ? JsonConvert.DeserializeObject<User>(exampleJson)
+                : default(User);
             //TODO: Change the data returned
             return new ObjectResult(example);
         }
@@ -177,7 +190,7 @@ namespace Controllers
         /// <summary>
         /// register user to system
         /// </summary>
-        
+
         /// <param name="body">User object that needs to be added to the system</param>
         /// <response code="200">user added</response>
         /// <response code="500">internal server error</response>
@@ -185,23 +198,79 @@ namespace Controllers
         [Route("/v1/register")]
         [ValidateModelState]
         [SwaggerOperation("RegisterUser")]
-        public async Task<IActionResult> RegisterUser([FromBody]User body)
+        public async Task<IActionResult> RegisterUser([FromBody] User body)
         {
             body.EmailToLowerCase();
-            
-            UserQuerry loginUser = new UserQuerry(Db);
-            User user = await loginUser.GetUserByEmail(body.Email);
-            User user2 = await loginUser.CheckIfUsernameExists(body.Username);
 
-            if (user == null && user2 == null)
+            UserQuerry registerUser = new UserQuerry(Db);
+
+            if (await registerUser.GetUserByEmail(body.Email) == null &&
+                await registerUser.CheckIfUsernameExists(body.Username) == null)
             {
                 await Db.Connection.OpenAsync();
-                    body.Db = Db;
-                    body.HashPass();
-                    await body.InsertAsync();
-                    return new OkObjectResult("Account succesfully made");
+                body.Db = Db;
+                body.Verified = Convert.ToString(Guid.NewGuid());
+                body.HashPass();
+                await body.InsertAsync();
+
+                MailHendler mailHendler = new MailHendler();
+
+                mailHendler.Execute(body.Email, body.FirstName, body.Verified);
+
+                return new OkObjectResult("Account succesfully made");
             }
+
             return new BadRequestObjectResult("Account already exists");
         }
+
+        [HttpPost]
+        [Route("/v1/verify/{verifyId}")]
+        [ValidateModelState]
+        [SwaggerOperation("verify")]
+        public async Task<IActionResult> VerifyUser([FromRoute] [Required] string verifyId)
+        {
+
+            UserQuerry verifyUser = new UserQuerry(Db);
+            verifyUser.Verified(verifyId);
+
+            /*
+             * Make this edit the db to verify user
+             * after that make it so the user can only login when verified
+             * implement mailhendler
+             * make register send an email.
+             */
+
+            //TODO some page to show the person succeeded
+//            return base.Content("<script>window.close();</script>", "text/html");
+            return new OkObjectResult("success");
+        }
+        
+        [HttpPost]
+        [Route("/v1/resendemail")]
+        [ValidateModelState]
+        [SwaggerOperation("resendemail")]
+        public async Task<IActionResult> ResendEmail([FromBody] Login body)
+        {
+            body.Email = body.Email.ToLower();
+            
+            //create user object and fill it with user
+            UserQuerry resend = new UserQuerry(Db);
+            User resendUser = await resend.GetUserByEmail(body.Email);
+            
+            // check if user is verified
+            if (resendUser.Verified != "true")
+            {
+                // if not resend email
+                MailHendler mailHendler = new MailHendler();
+                mailHendler.Execute(body.Email, resendUser.FirstName, resendUser.Verified);
+                return new OkObjectResult("email resend");
+            }
+            else
+            {
+                // if is then give error
+                return new ConflictObjectResult("User Already verified");
+            }
+        }
+
     }
 }
