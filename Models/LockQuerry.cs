@@ -74,7 +74,7 @@ namespace Models
                         Id = reader.GetInt32(0),
                         OwnerId = reader.IsDBNull(1) ? (int?) null : reader.GetInt32(1),
                         RachetKey = reader.IsDBNull(2) ? (string) null : reader.GetString(2),
-                        RatchetCounter = reader.IsDBNull(3) ? (string) null : reader.GetString(3),
+                        RatchetCounter = reader.IsDBNull(3) ? (int) 0 : reader.GetInt32(3),
                         Description = reader.IsDBNull(4) ? (string) null : reader.GetString(4),
                     };
                     locks.Add(door);

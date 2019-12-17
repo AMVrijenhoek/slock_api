@@ -44,7 +44,7 @@ namespace Models
             return result.Count > 0 ? result[0] : null;
         }
         
-        public async Task<User> CheckIfUsernameExists(string username)
+        public async Task<User> GetUserByUsername(string username)
         {
             using var cmd = Db.Connection.CreateCommand();
             cmd.CommandText = @"SELECT id, email, username, first_name, last_name, password FROM `users` WHERE `username` = @username";

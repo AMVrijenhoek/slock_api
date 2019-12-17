@@ -29,7 +29,7 @@ namespace Models
     /// 
     /// </summary>
     [DataContract]
-    public partial class Lock : IEquatable<Lock>
+    public partial class Rented : IEquatable<Rented>
     { 
         /// <summary>
         /// Gets or Sets Id
@@ -40,45 +40,43 @@ namespace Models
         /// <summary>
         /// Gets or Sets Id
         /// </summary>
-        [DataMember(Name="ownerid")]
-        public int? OwnerId { get; set; }
+        [DataMember(Name="userid")]
+        public int UserId { get; set; }
 
         /// <summary>
-        /// Gets or Sets rachetKey
+        /// Gets or Sets lockId
         /// </summary>
-        [DataMember(Name="rachetKey")]
-        public string RachetKey { get; set; }
+        [DataMember(Name="lockid")]
+        public int LockId { get; set; }
 
         /// <summary>
-        /// Gets or Sets ratchetCounter
+        /// Gets or Sets start
         /// </summary>
-        [DataMember(Name="ratchetCounter")]
-        public int RatchetCounter { get; set; }
+        [DataMember(Name="start")]
+        public DateTime Start { get; set; }
 
         /// <summary>
-        /// Gets or Sets Address
+        /// Gets or Sets end
         /// </summary>
-        [DataMember(Name="Description")]
-        public string Description { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Address
-        /// </summary>
-        [DataMember(Name="ProductKey")]
-        public string ProductKey { get; set; }
+        [DataMember(Name="end")]
+        public DateTime End { get; set; }
 
         internal AppDb Db { get; set; }
 
-        internal Lock()
+        // Constructors
+        internal Rented()
         {}
-        internal Lock(AppDb db)
+
+        internal Rented(AppDb db)
         {
             Db = db;
         }
+        // end constructors
+
         public async Task InsertAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"INSERT INTO `locks` (`owner_id`, `ratchet_key`, `ratchet_counter`, `description`, `product_key`) VALUES (@owner_id, @ratchet_key, @ratchet_counter, @description, @product_key);";
+            cmd.CommandText = @"INSERT INTO `rented` (`user_id`, `lock_id`, `start`, `end`) VALUES (@owner_id, @lock_id, @start, @end);";
             BindParams(cmd);
             await cmd.ExecuteNonQueryAsync();
             Id = (int) cmd.LastInsertedId;
@@ -87,7 +85,7 @@ namespace Models
         public async Task UpdateAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"UPDATE `locks` SET `owner_id` = @owner_id, `ratchet_key` = @ratchet_key, `ratchet_counter` = @ratchet_counter, `description` = @description WHERE `id` = @id;";
+            cmd.CommandText = @"UPDATE `rented` SET `user_id` = @user_id, `lock_id` = @lock_id, `start` = @start, `end` = @end WHERE `id` = @id;";
             BindParams(cmd);
             BindId(cmd);
             await cmd.ExecuteNonQueryAsync();
@@ -109,31 +107,25 @@ namespace Models
             {
                 ParameterName = "@owner_id",
                 DbType = DbType.String,
-                Value = OwnerId,
+                Value = UserId,
             });
             cmd.Parameters.Add(new MySqlParameter
             {
-                ParameterName = "@ratchet_key",
+                ParameterName = "@lock_id",
                 DbType = DbType.String,
-                Value = RachetKey,
+                Value = LockId,
             });
             cmd.Parameters.Add(new MySqlParameter
             {
-                ParameterName = "@ratchet_counter",
+                ParameterName = "@start",
                 DbType = DbType.String,
-                Value = RatchetCounter,
+                Value = Start,
             });
             cmd.Parameters.Add(new MySqlParameter
             {
-                ParameterName = "@description",
+                ParameterName = "@end",
                 DbType = DbType.String,
-                Value = Description,
-            });
-            cmd.Parameters.Add(new MySqlParameter
-            {
-                ParameterName = "@product_key",
-                DbType = DbType.String,
-                Value = ProductKey,
+                Value = End,
             });
         }
 
@@ -145,12 +137,12 @@ namespace Models
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.Append("class Lock {\n");
+            sb.Append("class Rented {\n");
             sb.Append("  Id: ").Append(Id).Append("\n");
-            sb.Append("  ownerid: ").Append(OwnerId).Append("\n");
-            sb.Append("  RachetKey: ").Append(RachetKey).Append("\n");
-            sb.Append("  RatchetCounter: ").Append(RatchetCounter).Append("\n");
-            sb.Append("  Description: ").Append(Description).Append("\n");
+            sb.Append("  UserId: ").Append(UserId).Append("\n");
+            // sb.Append("  RachetKey: ").Append(RachetKey).Append("\n");
+            // sb.Append("  RatchetCounter: ").Append(RatchetCounter).Append("\n");
+            // sb.Append("  Description: ").Append(Description).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }
@@ -173,15 +165,15 @@ namespace Models
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            return obj.GetType() == GetType() && Equals((Lock)obj);
+            return obj.GetType() == GetType() && Equals((Rented)obj);
         }
 
         /// <summary>
-        /// Returns true if Lock instances are equal
+        /// Returns true if Rented instances are equal
         /// </summary>
-        /// <param name="other">Instance of Lock to be compared</param>
+        /// <param name="other">Instance of Rented to be compared</param>
         /// <returns>Boolean</returns>
-        public bool Equals(Lock other)
+        public bool Equals(Rented other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -191,20 +183,20 @@ namespace Models
                     Id == other.Id
                 ) && 
                 (
-                    OwnerId == other.OwnerId
-                ) && 
-                (
-                    Description == other.Description ||
-                    Description != null &&
-                    Description.Equals(other.Description)
-                ) && 
-                (
-                    RachetKey == other.RachetKey ||
-                    RachetKey != null &&
-                    RachetKey.Equals(other.RachetKey)
-                ) && 
-                (
-                    RatchetCounter == other.RatchetCounter //||
+                    UserId == other.UserId
+                // ) && 
+                // (
+                //     Description == other.Description ||
+                //     Description != null &&
+                //     Description.Equals(other.Description)
+                // ) && 
+                // (
+                //     RachetKey == other.RachetKey ||
+                    // RachetKey != null &&
+                    // RachetKey.Equals(other.RachetKey)
+                // ) && 
+                // (
+                    // RatchetCounter == other.RatchetCounter //||
                     // RatchetCounter != null &&
                     // RatchetCounter.Equals(other.RatchetCounter)
                 );
@@ -220,12 +212,12 @@ namespace Models
             {
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
-                    if (RachetKey != null)
-                    hashCode = hashCode * 59 + RachetKey.GetHashCode();
+                    // if (RachetKey != null)
+                    // hashCode = hashCode * 59 + RachetKey.GetHashCode();
                     // if (RatchetCounter != null)
-                    hashCode = hashCode * 59 + RatchetCounter.GetHashCode();
-                    if (Description != null)
-                    hashCode = hashCode * 59 + Description.GetHashCode();
+                    // hashCode = hashCode * 59 + RatchetCounter.GetHashCode();
+                    // if (Description != null)
+                    // hashCode = hashCode * 59 + Description.GetHashCode();
                 return hashCode;
             }
         }
@@ -234,12 +226,12 @@ namespace Models
         #region Operators
         #pragma warning disable 1591
 
-        public static bool operator ==(Lock left, Lock right)
+        public static bool operator ==(Rented left, Rented right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(Lock left, Lock right)
+        public static bool operator !=(Rented left, Rented right)
         {
             return !Equals(left, right);
         }
