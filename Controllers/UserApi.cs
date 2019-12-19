@@ -223,7 +223,7 @@ namespace Controllers
             return new BadRequestObjectResult("Account already exists");
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route("/v1/verify/{verifyId}")]
         [ValidateModelState]
         [SwaggerOperation("verify")]
