@@ -124,7 +124,7 @@ namespace Controllers
                 }
                 else
                 {
-                    return new UnauthorizedObjectResult("Account not verified");
+                    return new StatusCodeResult(412);
                 }
             }
 
