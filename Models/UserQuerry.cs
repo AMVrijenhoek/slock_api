@@ -63,7 +63,6 @@ namespace Models
         public void Verified(string verified)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.Connection.Open();
             cmd.CommandText = @"UPDATE `users` SET verified = 'true' WHERE `verified` = @verified;";
             cmd.Parameters.Add(new MySqlParameter
             {
@@ -71,8 +70,7 @@ namespace Models
                 DbType = DbType.String,
                 Value = verified,
             });
-            cmd.ExecuteReaderAsync();
-            cmd.Connection.Close();
+            cmd.ExecuteNonQueryAsync();
         }
 
         /*

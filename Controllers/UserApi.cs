@@ -217,7 +217,6 @@ namespace Controllers
             if (await registerUser.GetUserByEmail(body.Email) == null &&
                 await registerUser.GetUserByUsername(body.Username) == null)
             {
-                await Db.Connection.OpenAsync();
                 body.Db = Db;
                 body.Verified = Convert.ToString(Guid.NewGuid());
                 body.HashPass();
@@ -251,7 +250,7 @@ namespace Controllers
              * make register send an email.
              */
 
-            //TODO some page to show the person succeeded
+            // TODO some page to show the person succeeded
 //            return base.Content("<script>window.close();</script>", "text/html");
             return new OkObjectResult("success");
         }
