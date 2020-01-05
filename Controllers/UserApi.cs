@@ -127,7 +127,7 @@ namespace Controllers
                 }
                 else
                 {
-                    return new UnauthorizedObjectResult("Account not verified");
+                    return new StatusCodeResult(412);
                 }
             }
             // return error code if above fails
@@ -232,7 +232,7 @@ namespace Controllers
             return new BadRequestObjectResult("Account already exists");
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route("/v1/verify/{verifyId}")]
         [ValidateModelState]
         [SwaggerOperation("verify")]
