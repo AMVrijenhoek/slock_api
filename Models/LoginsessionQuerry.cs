@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -62,6 +63,21 @@ namespace Models
             });
             cmd.ExecuteNonQueryAsync();
             return true;
+        }
+
+        public async Task<Loginsession> GetUserIdByToken(string token)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText =
+                @"SELECT id, user_id, creation_date, auth_token FROM login_session WHERE token = @token";
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@token",
+                DbType = DbType.String,
+                Value = token,
+            });
+            var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
+            return result.Count > 0 ? result[0] : null;
         }
 
         /*
