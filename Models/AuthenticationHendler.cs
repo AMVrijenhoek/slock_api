@@ -3,7 +3,6 @@ using Controllers;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Newtonsoft.Json;
@@ -12,7 +11,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Attributes;
 using Models;
-using api.db;
 using System.Threading.Tasks;
 using DevOne.Security.Cryptography.BCrypt;
 
