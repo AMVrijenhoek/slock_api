@@ -38,13 +38,13 @@ namespace Models
         /// Gets or Sets StartDate
         /// </summary>
         [DataMember(Name="startDate")]
-        public string StartDate { get; set; }
+        public DateTime StartDate { get; set; }
 
         /// <summary>
         /// Gets or Sets EndDate
         /// </summary>
         [DataMember(Name="endDate")]
-        public string EndDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         /// <summary>
         /// Returns the string presentation of the object

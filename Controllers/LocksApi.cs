@@ -49,9 +49,17 @@ namespace Controllers
         [Route("/v1/locks/{lockId}/activate")]
         [ValidateModelState]
         [SwaggerOperation("LocksLockIdActivatePost")]
-        public /*async*/ Task<IActionResult> LocksLockIdActivatePost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Lock body)
+        public async Task<IActionResult> LocksLockIdActivatePost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Lock body)
         { 
-            throw new NotImplementedException();
+            await Db.Connection.OpenAsync();
+            // Get lock we want to update
+            LockQuerry lq = new LockQuerry(Db);
+            var locka = await lq.FindOneAsync(lockId);
+            // Update the lock
+            locka.Description = body.Description;
+            await locka.UpdateAsync();
+            
+            return new OkObjectResult("Lock updated");
         }
 
         /// <summary>
@@ -68,7 +76,7 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("ChangelockdetailsPost")]
         public async Task<IActionResult> ChangelockdetailsPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Lock body)
-        { 
+        {
             await Db.Connection.OpenAsync();
             // Get lock we want to update
             LockQuerry lq = new LockQuerry(Db);
@@ -93,7 +101,7 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("DeactivatePost")]
         public async Task<IActionResult> DeactivatePost([FromRoute][Required]int lockId, [FromHeader][Required()]string token)
-        { 
+        {
             await Db.Connection.OpenAsync();
             // Get lock we want to update
             LockQuerry lq = new LockQuerry(Db);
@@ -166,17 +174,23 @@ namespace Controllers
         [HttpPost]
         [Route("/v1/locks/{lockId}/share")]
         [ValidateModelState]
-        [SwaggerOperation("LocksLockIdSharePost")]
-        public virtual IActionResult LocksLockIdSharePost([FromRoute][Required]string lockId, [FromHeader][Required()]string token, [FromBody]Share body)
+        [SwaggerOperation("ShareLockPost")]
+        public async Task<IActionResult> ShareLockPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Share body)
         { 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200);
+            await Db.Connection.OpenAsync();
 
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
+            UserQuerry helper = new UserQuerry(Db);
+            // helper.
+            // Setup stuf to create the new 
+            Rented rLock = new Rented(Db);
+            rLock.LockId = lockId;
+            rLock.Start = body.StartDate;
+            rLock.End = body.EndDate;
+            rLock.UserId = helper.GetUserByUsername(body.Username).Id;
 
+            await rLock.InsertAsync();
 
-            throw new NotImplementedException();
+            return new OkObjectResult("Access Granted");
         }
 
         /// <summary>
