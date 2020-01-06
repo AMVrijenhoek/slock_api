@@ -23,6 +23,7 @@ using Attributes;
 using Models;
 using api.db;
 using System.Threading.Tasks;
+using api.obj;
 using DevOne.Security.Cryptography.BCrypt;
 using Microsoft.AspNetCore.Http;
 
@@ -105,7 +106,7 @@ namespace Controllers
                     if (BCryptHelper.CheckPassword(body.Password, user.Password)) //body.Password has to be hashed with
                     {
                         // generate authentication token (create global unique identifier and base64 encode it)
-                        string generatedToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+                        string generatedToken = Helpers.SecureRandomNumber();
 
                         // check if there is a session
                         // delete rows with that user_id
@@ -218,7 +219,7 @@ namespace Controllers
                 await registerUser.GetUserByUsername(body.Username) == null)
             {
                 body.Db = Db;
-                body.Verified = Convert.ToString(Guid.NewGuid());
+                body.Verified = Helpers.SecureRandomNumber();
                 body.HashPass();
                 await body.InsertAsync();
 
@@ -242,13 +243,6 @@ namespace Controllers
 
             UserQuerry verifyUser = new UserQuerry(Db);
             verifyUser.Verified(verifyId);
-
-            /*
-             * Make this edit the db to verify user
-             * after that make it so the user can only login when verified
-             * implement mailhendler
-             * make register send an email.
-             */
 
             // TODO some page to show the person succeeded
 //            return base.Content("<script>window.close();</script>", "text/html");
