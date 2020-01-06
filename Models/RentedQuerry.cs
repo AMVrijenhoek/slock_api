@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -7,52 +8,52 @@ using api.db;
 
 namespace Models
 {
-    public class LockQuerry
+    public class RentedQuerry
     {
         public AppDb Db { get; }
 
-        public LockQuerry(AppDb db)
+        public RentedQuerry(AppDb db)
         {
             Db = db;
         }
 
-        public async Task<Lock> FindOneAsync(int id)
+        public async Task<Rented> FindOneAsync(int id)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description FROM `locks` WHERE `id` = @id";
+            cmd.CommandText = @"SELECT id, locks_id, user_id, start end FROM `rented` WHERE `id` = @id";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@id",
                 DbType = DbType.Int32,
-                Value = id
+                Value = id,
             });
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
             return result.Count > 0 ? result[0] : null;
         }
-
-        public async Task<List<Lock>> FindLocksByOwnerAsync(int ownerid)
+        
+        public async Task<Rented> FindOneByLockId(int lock_id)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description FROM `locks` WHERE `owner_id` = @ownerid";
+            cmd.CommandText = @"SELECT id, locks_id, user_id, start end FROM `rented` WHERE `lock_id` = @lock_id";
             cmd.Parameters.Add(new MySqlParameter
             {
-                ParameterName = "@ownerid",
+                ParameterName = "@lock_id",
                 DbType = DbType.Int32,
-                Value = ownerid
+                Value = lock_id,
             });
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
-            return result;
+            return result.Count > 0 ? result[0] : null;
         }
         
-        public async Task<Lock> FindLocksByLockIdAsync(int lock_id)
+        public async Task<Rented> FindOneByUserId(int userId)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description FROM `locks` WHERE `id` = @lockId";
+            cmd.CommandText = @"SELECT id, locks_id, user_id, start FROM `rented` WHERE `user_id` = @user_id";
             cmd.Parameters.Add(new MySqlParameter
             {
-                ParameterName = "@lockId",
+                ParameterName = "@user_id",
                 DbType = DbType.Int32,
-                Value = lock_id
+                Value = userId,
             });
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
             return result.Count > 0 ? result[0] : null;
@@ -76,25 +77,25 @@ namespace Models
         }
         /**/
 
-        private async Task<List<Lock>> ReadAllAsync(DbDataReader reader)
+        private async Task<List<Rented>> ReadAllAsync(DbDataReader reader)
         {
-            var locks = new List<Lock>();
+            var rented = new List<Rented>();
             using (reader)
             {
                 while (await reader.ReadAsync())
                 {
-                    Lock door = new Lock(Db)
+                    var rent = new Rented(Db)
                     {
                         Id = reader.GetInt32(0),
-                        OwnerId = reader.IsDBNull(1) ? (int?) null : reader.GetInt32(1),
-                        RachetKey = reader.IsDBNull(2) ? (string) null : reader.GetString(2),
-                        RatchetCounter = reader.IsDBNull(3) ? (int) 0 : reader.GetInt32(3),
-                        Description = reader.IsDBNull(4) ? (string) null : reader.GetString(4),
+                        LockId = reader.GetInt32(1),
+                        UserId = reader.GetInt32(2),
+                        Start = reader.GetDateTime(3),
+                        End = reader.GetDateTime(4),
                     };
-                    locks.Add(door);
+                    rented.Add(rent);
                 }
             }
-            return locks;
+            return rented;
         }
         
     }

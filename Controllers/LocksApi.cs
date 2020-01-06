@@ -15,6 +15,8 @@ using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
+using System.Text;
 // using IO.Swagger.Security;
 using Microsoft.AspNetCore.Authorization;
 using Attributes;
@@ -114,30 +116,6 @@ namespace Controllers
         }
 
         /// <summary>
-        /// Ticks the ratchet one place further
-        /// </summary>
-        
-        /// <param name="lockId"></param>
-        /// <param name="token"></param>
-        /// <response code="200">success</response>
-        /// <response code="500">server error</response>
-        [HttpGet]
-        [Route("/v1/locks/{lockId}/ratchettick")]
-        [ValidateModelState]
-        [SwaggerOperation("IncrementRatchettickGet")]
-        public virtual IActionResult IncrementRatchettickGet([FromRoute][Required]string lockId, [FromHeader][Required()]string token)
-        { 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200);
-
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-
-
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
         /// syncs the ratched
         /// </summary>
         
@@ -150,16 +128,40 @@ namespace Controllers
         [Route("/v1/locks/{lockId}/ratchettick")]
         [ValidateModelState]
         [SwaggerOperation("LocksLockIdRatchettickPost")]
-        public virtual IActionResult LocksLockIdRatchettickPost([FromRoute][Required]string lockId, [FromHeader][Required()]string token, [FromBody]Ratchetsync body)
+        public virtual async Task<IActionResult> LocksLockIdRatchettickPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Ratchetsync body)
         { 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200);
+            // check if user is allowed
+            AuthenticationHendler auth = new AuthenticationHendler(Db);
+            var authToken = auth.CheckAuth(token);
+            if (authToken.Result != null)
+            {
+                // check if user can open lock
+                if (await auth.CheckLockUser(lockId, authToken.Result.Id) == true)
+                {
+                    // check if previous token is correct
+                    LockQuerry lockQuerry = new LockQuerry(Db);
+                    Lock lockOwned = await lockQuerry.FindLocksByLockIdAsync(lockId);
 
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
+                    var data = Encoding.UTF8.GetBytes(lockOwned.RachetKey + ";" + body.Counter);
+                    SHA512 shaM = new SHA512Managed();
+                    var ratchetToken = shaM.ComputeHash(data).ToString();
 
-
-            throw new NotImplementedException();
+                    if (body.Token == ratchetToken)
+                    {
+                        var test = body.Counter;
+                        // check if previous counter is  bigger than current count
+                        if (Convert.ToInt32(body.Counter) > lockOwned.RatchetCounter)
+                        {
+                            // if that is all correct change the counter to previous counter +1
+                            var ratchetCounter = Convert.ToInt32(body.Counter) + 1;
+                            await lockOwned.SyncRatchetCounter(lockId, ratchetCounter);
+                            
+                            return StatusCode(200);
+                        }
+                    }
+                }
+            }
+            return StatusCode(500);
         }
 
         /// <summary>
@@ -194,7 +196,7 @@ namespace Controllers
         }
 
         /// <summary>
-        /// get the locks this user has rented
+        /// generate ratchet token on api call
         /// </summary>
         
         /// <param name="lockId"></param>
@@ -205,16 +207,39 @@ namespace Controllers
         [Route("/v1/locks/{lockId}/token")]
         [ValidateModelState]
         [SwaggerOperation("LocksLockIdTokenGet")]
-        public virtual IActionResult LocksLockIdTokenGet([FromRoute][Required]string lockId, [FromHeader][Required()]string token)
+        public virtual async Task<IActionResult> LocksLockIdTokenGet([FromRoute][Required]int lockId, [FromHeader][Required()]string token)
         { 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200);
+            // this is the call to open lock
+            // check if correct user
+            AuthenticationHendler auth = new AuthenticationHendler(Db);
+            var authToken = auth.CheckAuth(token);
+            if (authToken.Result != null)
+            {
+                // check if user can open lock
+                if (await auth.CheckLockUser(lockId, authToken.Result.Id) == true)
+                {
+                    // generate token
+                    LockQuerry lockQuerry = new LockQuerry(Db);
+                    Lock lockOwned = await lockQuerry.FindLocksByLockIdAsync(lockId);
+                    
+                    string preSharedSecret = lockOwned.RachetKey; //send by app to backend
+                    int ratchetCounter = lockOwned.RatchetCounter; // starts at 0 when registerd
 
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
 
+                    var data = Encoding.UTF8.GetBytes(preSharedSecret + ";" + ratchetCounter);
+                    SHA512 shaM = new SHA512Managed();
+                    var ratchetToken = shaM.ComputeHash(data).ToString();
 
-            throw new NotImplementedException();
+                    // up the ratchet counter in the db
+                    lockOwned.UpdateRatchetCounter(lockId);
+                        
+                    // return token
+                    return new OkObjectResult(ratchetToken);
+                }
+                
+            }
+            
+            return StatusCode(500);
         }
 
         /// <summary>
