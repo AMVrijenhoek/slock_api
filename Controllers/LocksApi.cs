@@ -131,7 +131,7 @@ namespace Controllers
         public virtual async Task<IActionResult> LocksLockIdRatchettickPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Ratchetsync body)
         { 
             // check if user is allowed
-            AuthenticationHendler auth = new AuthenticationHendler(Db);
+            AuthenticationHandler auth = new AuthenticationHandler(Db);
             var authToken = auth.CheckAuth(token);
             if (authToken.Result != null)
             {
@@ -211,7 +211,7 @@ namespace Controllers
         { 
             // this is the call to open lock
             // check if correct user
-            AuthenticationHendler auth = new AuthenticationHendler(Db);
+            AuthenticationHandler auth = new AuthenticationHandler(Db);
             var authToken = auth.CheckAuth(token);
             if (authToken.Result != null)
             {
