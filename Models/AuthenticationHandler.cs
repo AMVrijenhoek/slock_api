@@ -17,11 +17,11 @@ using DevOne.Security.Cryptography.BCrypt;
 
 namespace Controllers
 {
-    public class AuthenticationHendler
+    public class AuthenticationHandler
     {
         public AppDb Db { get; }
 
-        public AuthenticationHendler(AppDb db)
+        public AuthenticationHandler(AppDb db)
         {
             Db = db;
         }
@@ -31,14 +31,14 @@ namespace Controllers
             LoginsessionQuerry logins = new LoginsessionQuerry(Db);
             Loginsession login = await logins.GetUserIdByToken(token);
             
-            UserQuerry users = new UserQuerry(Db);
             if (login != null)
             {
-                User user = await users.FindOneAsync(Convert.ToInt32(login.user_id));
+                UserQuerry users = new UserQuerry(Db);
+                User user = await users.FindOneAsync(login.user_id);
                 return user;
             }
 
-            return await Task.FromResult<User>(null);
+            return null;
         }
 
         public async Task<Boolean> CheckLockUser(int lock_id, int user_id)

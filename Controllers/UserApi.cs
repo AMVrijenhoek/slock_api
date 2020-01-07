@@ -146,8 +146,12 @@ namespace Controllers
         [Route("/v1/logout")]
         [ValidateModelState]
         [SwaggerOperation("LogoutGet")]
-        public virtual IActionResult LogoutGet([FromHeader] [Required()] string token)
+        public async Task<IActionResult> LogoutGet([FromHeader] [Required()] string token)
         {
+            await Db.Connection.OpenAsync();
+            AuthenticationHandler auth = new AuthenticationHandler(Db);
+            var authToken = auth.CheckAuth(token);
+            return new OkObjectResult(authToken);
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200);
 

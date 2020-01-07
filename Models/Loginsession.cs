@@ -43,7 +43,7 @@ namespace Models
         /// Gets or Sets user_id
         /// </summary>
         [DataMember(Name="user_id")]
-        public string user_id { get; set; }
+        public int user_id { get; set; }
         
         /// <summary>
         /// Gets or Sets creation_date
@@ -163,11 +163,6 @@ namespace Models
 
             return
                 (
-                    user_id == other.user_id ||
-                    user_id != null &&
-                    user_id.Equals(other.user_id)
-                ) &&
-                (
                     creation_date == other.creation_date ||
                     creation_date != null &&
                     creation_date.Equals(other.creation_date)
@@ -189,8 +184,6 @@ namespace Models
             {
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
-                    if (user_id != null)
-                        hashCode = hashCode * 59 + user_id.GetHashCode();
                     if (creation_date != null)
                         hashCode = hashCode * 59 + creation_date.GetHashCode();
                     if (auth_token != null)

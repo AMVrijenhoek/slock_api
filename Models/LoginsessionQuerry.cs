@@ -69,7 +69,7 @@ namespace Models
         {
             using var cmd = Db.Connection.CreateCommand();
             cmd.CommandText =
-                @"SELECT id, user_id, creation_date, auth_token FROM login_session WHERE token = @token";
+                @"SELECT id, user_id, creation_date, auth_token FROM login_session WHERE auth_token = @token";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@token",
@@ -108,8 +108,9 @@ namespace Models
                     var session = new Loginsession(Db)
                     {
                         Id = reader.GetInt32(0),
-                        creation_date = reader.GetDateTime(1).ToString(),
-                        auth_token = reader.GetString(2),
+                        user_id  = reader.GetInt32(1),
+                        creation_date = reader.GetDateTime(2).ToString(),
+                        auth_token = reader.GetString(3),
                     };
                     sessions.Add(session);
                 }

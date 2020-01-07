@@ -89,8 +89,8 @@ namespace Models
                         Id = reader.GetInt32(0),
                         LockId = reader.GetInt32(1),
                         UserId = reader.GetInt32(2),
-                        Start = reader.GetDateTime(3),
-                        End = reader.GetDateTime(4),
+                        Start = reader.GetString(3),
+                        End = reader.GetString(4),
                     };
                     rented.Add(rent);
                 }

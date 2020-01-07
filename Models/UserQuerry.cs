@@ -21,7 +21,7 @@ namespace Models
         public async Task<User> FindOneAsync(int id)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT email, username, first_name, last_name FROM `users` WHERE `id` = @id";
+            cmd.CommandText = @"SELECT id, email, username, first_name, last_name, password, verified FROM `users` WHERE `id` = @id";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@id",

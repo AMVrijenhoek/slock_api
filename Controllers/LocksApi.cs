@@ -236,7 +236,7 @@ namespace Controllers
                     var ratchetToken = shaM.ComputeHash(data).ToString();
 
                     // up the ratchet counter in the db
-                    lockOwned.UpdateRatchetCounter(lockId);
+                    await lockOwned.UpdateRatchetCounter(lockId);
                         
                     // return token
                     return new OkObjectResult(ratchetToken);
