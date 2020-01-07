@@ -57,6 +57,20 @@ namespace Models
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
             return result;
         }
+        
+        public async Task<Lock> FindLocksByLockIdAsync(int lock_id)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description FROM `locks` WHERE `id` = @lockId";
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@lockId",
+                DbType = DbType.Int32,
+                Value = lock_id
+            });
+            var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
+            return result.Count > 0 ? result[0] : null;
+        }
 
         public async Task<List<Lock>> FindRentedLocksAsync(int userid)
         {

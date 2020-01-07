@@ -93,6 +93,34 @@ namespace Models
             await cmd.ExecuteNonQueryAsync();
         }
 
+        public async Task UpdateRatchetCounter(int id)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText = @"UPDATE `locks` SET `ratchet_counter` = ratchet_counter + 1 WHERE `id` = @id;";
+            BindParams(cmd);
+            BindId(cmd);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task SyncRatchetCounter(int id, int ratchet_counter)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText = @"UPDATE `locks` SET `ratchet_counter` = @ratchet_counter WHERE `id` = @id;";
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@id",
+                DbType = DbType.Int32,
+                Value = id
+            });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@ratchet_counter",
+                DbType = DbType.String,
+                Value = ratchet_counter,
+            });
+            await cmd.ExecuteReaderAsync();
+        }
+        
         private void BindId(MySqlCommand cmd)
         {
             cmd.Parameters.Add(new MySqlParameter
