@@ -46,17 +46,22 @@ namespace Controllers
         /// <response code="200">success</response>
         /// <response code="500">server error</response>
         [HttpPost]
-        [Route("/v1/locks/{lockId}/activate")]
+        [Route("/v1/locks/activate")]
         [ValidateModelState]
-        [SwaggerOperation("LocksLockIdActivatePost")]
-        public async Task<IActionResult> LocksLockIdActivatePost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Lock body)
+        [SwaggerOperation("LockActivatePost")]
+        public async Task<IActionResult> LockActivatePost([FromHeader][Required()]string token, [FromBody]Lock body)
         { 
             await Db.Connection.OpenAsync();
             // Get lock we want to update
             LockQuerry lq = new LockQuerry(Db);
-            var locka = await lq.FindOneAsync(lockId);
+            var locka = await lq.GetLockByProductKey(body.ProductKey);
             // Update the lock
             locka.Description = body.Description;
+            if(locka.OwnerId == null){
+                locka.OwnerId = body.OwnerId;
+            }else{
+                return new BadRequestObjectResult("Lock already has an owner");
+            }
             await locka.UpdateAsync();
             
             return new OkObjectResult("Lock updated");
@@ -176,17 +181,17 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("ShareLockPost")]
         public async Task<IActionResult> ShareLockPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Share body)
-        { 
+        {
             await Db.Connection.OpenAsync();
 
             UserQuerry helper = new UserQuerry(Db);
             // helper.
-            // Setup stuf to create the new 
+            // Setup stuf to create the new rented
             Rented rLock = new Rented(Db);
             rLock.LockId = lockId;
             rLock.Start = body.StartDate;
             rLock.End = body.EndDate;
-            rLock.UserId = helper.GetUserByUsername(body.Username).Id;
+            rLock.UserId = helper.GetUserByUsername(body.Username).Result.Id;
 
             await rLock.InsertAsync();
 
@@ -228,16 +233,19 @@ namespace Controllers
         [Route("/v1/me/ownedlocks")]
         [ValidateModelState]
         [SwaggerOperation("MeOwnedlocksGet")]
-        [SwaggerResponse(statusCode: 200, type: typeof(Ownedlocks), description: "succes")]
+        // [SwaggerResponse(statusCode: 200, type: typeof(Ownedlocks), description: "succes")]
         public async Task<IActionResult> MeOwnedlocksGet([FromHeader][Required()]string token)
         {
             await Db.Connection.OpenAsync();
-            // TODO get onwer id based on token
+            // TODO get ownerid based on token
             LockQuerry manager = new LockQuerry(Db);
-            var locks = manager.FindLocksByOwnerAsync(1);
+            var locks = manager.FindLocksByOwnerAsync(8);
+            List<LocksInfo> lockinfo = new List<LocksInfo>(); 
+            for(int i = 0; i < locks.Result.Count; i++){
+                lockinfo.Add(new LocksInfo(locks.Result[i]));
+            }
 
-            // return new ObjectResult(locks);
-            return new OkObjectResult(locks);
+            return new OkObjectResult(lockinfo);
         }
 
         /// <summary>
@@ -252,26 +260,22 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("MeRentedlockesGet")]
         [SwaggerResponse(statusCode: 200, type: typeof(Rentedlocks), description: "succes")]
-        public virtual IActionResult MeRentedlockesGet([FromHeader][Required()]string token)
+        public async Task<IActionResult> MeRentedlockesGet([FromHeader][Required()]string token)
         { 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(Rentedlocks));
-
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-
-            string exampleJson = null;
-            exampleJson = "\"\"";
+            await Db.Connection.OpenAsync();
+            // TODO get userid based on token
+            LockQuerry manager = new LockQuerry(Db);
+            var locks = manager.FindRentedLocksAsync(7);
+            List<LocksInfo> lockinfo = new List<LocksInfo>(); 
+            for(int i = 0; i < locks.Result.Count; i++){
+                lockinfo.Add(new LocksInfo(locks.Result[i]));
+            }
             
-            var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<Rentedlocks>(exampleJson)
-            : default(Rentedlocks);
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+            return new OkObjectResult(lockinfo);
         }
 
         /// <summary>
-        /// register user to system
+        /// register lock to system
         /// </summary>
         
         /// <param name="body">User object that needs to be added to the system</param>

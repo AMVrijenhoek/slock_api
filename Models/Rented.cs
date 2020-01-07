@@ -53,13 +53,15 @@ namespace Models
         /// Gets or Sets start
         /// </summary>
         [DataMember(Name="start")]
-        public DateTime Start { get; set; }
+        // public DateTime Start { get; set; }
+        public String Start { get; set; }
 
         /// <summary>
         /// Gets or Sets end
         /// </summary>
         [DataMember(Name="end")]
-        public DateTime End { get; set; }
+        // public DateTime End { get; set; }
+        public String End { get; set; }
 
         internal AppDb Db { get; set; }
 
@@ -76,7 +78,7 @@ namespace Models
         public async Task InsertAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"INSERT INTO `rented` (`user_id`, `lock_id`, `start`, `end`) VALUES (@owner_id, @lock_id, @start, @end);";
+            cmd.CommandText = @"INSERT INTO `rented` (`user_id`, `lock_id`, `start`, `end`) VALUES (@user_id, @lock_id, @start, @end);";
             BindParams(cmd);
             await cmd.ExecuteNonQueryAsync();
             Id = (int) cmd.LastInsertedId;
@@ -105,7 +107,7 @@ namespace Models
         {
             cmd.Parameters.Add(new MySqlParameter
             {
-                ParameterName = "@owner_id",
+                ParameterName = "@user_id",
                 DbType = DbType.String,
                 Value = UserId,
             });

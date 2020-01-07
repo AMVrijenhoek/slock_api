@@ -30,6 +30,20 @@ namespace Models
             return result.Count > 0 ? result[0] : null;
         }
 
+        public async Task<Lock> GetLockByProductKey(string productKey)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description FROM `locks` WHERE `product_key` = @product_key";
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@product_key",
+                DbType = DbType.Int32,
+                Value = productKey
+            });
+            var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
+            return result.Count > 0 ? result[0] : null;
+        }
+
         public async Task<List<Lock>> FindLocksByOwnerAsync(int ownerid)
         {
             using var cmd = Db.Connection.CreateCommand();
@@ -39,6 +53,23 @@ namespace Models
                 ParameterName = "@ownerid",
                 DbType = DbType.Int32,
                 Value = ownerid
+            });
+            var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
+            return result;
+        }
+
+        public async Task<List<Lock>> FindRentedLocksAsync(int userid)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText = @"SELECT l.id, owner_id, ratchet_key, ratchet_counter, description 
+                                FROM `locks` l
+                                    JOIN `rented` r ON l.id = r.lock_id
+                                WHERE r.`user_id` = @userid";
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@userid",
+                DbType = DbType.Int32,
+                Value = userid
             });
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
             return result;
