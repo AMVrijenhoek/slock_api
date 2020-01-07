@@ -8,7 +8,7 @@ namespace api.obj
         public static string SecureRandomNumber()
         {
             RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
-            var byteArray = new byte[16];
+            var byteArray = new byte[69];
             provider.GetBytes(byteArray);
 
             //convert 16 bytes to a hex string
