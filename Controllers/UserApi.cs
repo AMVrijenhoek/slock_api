@@ -148,18 +148,21 @@ namespace Controllers
         [SwaggerOperation("LogoutGet")]
         public async Task<IActionResult> LogoutGet([FromHeader] [Required()] string token)
         {
+            // check if user is logged in
             await Db.Connection.OpenAsync();
             AuthenticationHandler auth = new AuthenticationHandler(Db);
             var authToken = auth.CheckAuth(token);
-            return new OkObjectResult(authToken);
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200);
+            if (authToken.Result != null)
+            {
+                // if user is logged in
+                // End that session
+                LoginsessionQuerry sessions = new LoginsessionQuerry(Db);
+                Loginsession session = await sessions.FindOneByUserId(authToken.Result.Id);
+                await session.DeleteAsync();
 
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-
-
-            throw new NotImplementedException();
+                return StatusCode(200);
+            }
+            return StatusCode(500);
         }
 
         /// <summary>
