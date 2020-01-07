@@ -20,7 +20,7 @@ namespace Models
         public async Task<Loginsession> FindOneAsync(int id)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT user_id, creation_date, auth_token FROM `login_session` WHERE `id` = @id";
+            cmd.CommandText = @"SELECT id, user_id, creation_date, auth_token FROM `login_session` WHERE `id` = @id";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@id",
