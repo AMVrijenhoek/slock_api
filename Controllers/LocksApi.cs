@@ -54,19 +54,31 @@ namespace Controllers
         public async Task<IActionResult> LockActivatePost([FromHeader][Required()]string token, [FromBody]Lock body)
         { 
             await Db.Connection.OpenAsync();
-            // Get lock we want to update
-            LockQuerry lq = new LockQuerry(Db);
-            var locka = await lq.GetLockByProductKey(body.ProductKey);
-            // Update the lock
-            locka.Description = body.Description;
-            if(locka.OwnerId == null){
-                locka.OwnerId = body.OwnerId;
-            }else{
-                return new BadRequestObjectResult("Lock already has an owner");
+            AuthenticationHandler auth = new AuthenticationHandler(Db);
+            var authToken = auth.CheckAuth(token);
+            if (authToken.Result != null)
+            {
+                //TODO maybe check if the lock is not already activated
+                await Db.Connection.OpenAsync();
+                // Get lock we want to update
+                LockQuerry lq = new LockQuerry(Db);
+                var locka = await lq.GetLockByProductKey(body.ProductKey);
+                // Update the lock
+                locka.Description = body.Description;
+                if (locka.OwnerId == null)
+                {
+                    locka.OwnerId = body.OwnerId;
+                }
+                else
+                {
+                    return new BadRequestObjectResult("Lock already has an owner");
+                }
+
+                await locka.UpdateAsync();
+
+                return new OkObjectResult("Lock updated");
             }
-            await locka.UpdateAsync();
-            
-            return new OkObjectResult("Lock updated");
+            return new UnauthorizedResult();
         }
 
         /// <summary>
@@ -85,14 +97,24 @@ namespace Controllers
         public async Task<IActionResult> ChangelockdetailsPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Lock body)
         {
             await Db.Connection.OpenAsync();
-            // Get lock we want to update
-            LockQuerry lq = new LockQuerry(Db);
-            var locka = await lq.FindOneAsync(lockId);
-            // Update the lock
-            locka.Description = body.Description;
-            await locka.UpdateAsync();
-            
-            return new OkObjectResult("Lock updated");
+            AuthenticationHandler auth = new AuthenticationHandler(Db);
+            var authToken = auth.CheckAuth(token);
+            if (authToken.Result != null)
+            {
+                if (await auth.CheckLockOwner(lockId, authToken.Result.Id) == true)
+                {
+                    // Get lock we want to update
+                    LockQuerry lq = new LockQuerry(Db);
+                    var locka = await lq.FindOneAsync(lockId);
+                    // Update the lock
+                    locka.Description = body.Description;
+                    await locka.UpdateAsync();
+
+                    return new OkObjectResult("Lock updated");
+                }
+                return new UnauthorizedResult();
+            }
+            return new UnauthorizedResult();
         }
 
         /// <summary>
@@ -110,14 +132,24 @@ namespace Controllers
         public async Task<IActionResult> DeactivatePost([FromRoute][Required]int lockId, [FromHeader][Required()]string token)
         {
             await Db.Connection.OpenAsync();
-            // Get lock we want to update
-            LockQuerry lq = new LockQuerry(Db);
-            var locka = await lq.FindOneAsync(lockId);
-            // Update the lock
-            locka.OwnerId = null;
-            await locka.UpdateAsync();
-            
-            return new OkObjectResult("Lock updated");
+            AuthenticationHandler auth = new AuthenticationHandler(Db);
+            var authToken = auth.CheckAuth(token);
+            if (authToken.Result != null)
+            {
+                if (await auth.CheckLockOwner(lockId, authToken.Result.Id) == true)
+                {
+                    // Get lock we want to update
+                    LockQuerry lq = new LockQuerry(Db);
+                    var locka = await lq.FindOneAsync(lockId);
+                    // Update the lock
+                    locka.OwnerId = null;
+                    await locka.UpdateAsync();
+
+                    return new OkObjectResult("Lock updated");
+                }
+                return new UnauthorizedResult();
+            }
+            return new UnauthorizedResult();
         }
 
         /// <summary>
@@ -185,19 +217,30 @@ namespace Controllers
         public async Task<IActionResult> ShareLockPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Share body)
         {
             await Db.Connection.OpenAsync();
+            await Db.Connection.OpenAsync();
+            AuthenticationHandler auth = new AuthenticationHandler(Db);
+            var authToken = auth.CheckAuth(token);
+            if (authToken.Result != null)
+            {
+                if (await auth.CheckLockOwner(lockId, authToken.Result.Id) == true)
+                {
+                    UserQuerry helper = new UserQuerry(Db);
+                    // helper.
+                    // Setup stuf to create the new rented
+                    Rented rLock = new Rented(Db);
+                    rLock.LockId = lockId;
+                    rLock.Start = body.StartDate;
+                    rLock.End = body.EndDate;
+                    rLock.UserId = helper.GetUserByUsername(body.Username).Result.Id;
 
-            UserQuerry helper = new UserQuerry(Db);
-            // helper.
-            // Setup stuf to create the new rented
-            Rented rLock = new Rented(Db);
-            rLock.LockId = lockId;
-            rLock.Start = body.StartDate;
-            rLock.End = body.EndDate;
-            rLock.UserId = helper.GetUserByUsername(body.Username).Result.Id;
+                    await rLock.InsertAsync();
 
-            await rLock.InsertAsync();
+                    return new OkObjectResult("Access Granted");
+                }
 
-            return new OkObjectResult("Access Granted");
+                return new UnauthorizedResult();
+            }
+            return new UnauthorizedResult();
         }
 
         /// <summary>
@@ -262,15 +305,21 @@ namespace Controllers
         public async Task<IActionResult> MeOwnedlocksGet([FromHeader][Required()]string token)
         {
             await Db.Connection.OpenAsync();
-            // TODO get ownerid based on token
-            LockQuerry manager = new LockQuerry(Db);
-            var locks = manager.FindLocksByOwnerAsync(8);
-            List<LocksInfo> lockinfo = new List<LocksInfo>(); 
-            for(int i = 0; i < locks.Result.Count; i++){
-                lockinfo.Add(new LocksInfo(locks.Result[i]));
+            AuthenticationHandler auth = new AuthenticationHandler(Db);
+            var authToken = auth.CheckAuth(token);
+            if (authToken.Result != null)
+            {
+                await Db.Connection.OpenAsync();
+                LockQuerry manager = new LockQuerry(Db);
+                var locks = manager.FindLocksByOwnerAsync(authToken.Result.Id);
+                List<LocksInfo> lockinfo = new List<LocksInfo>();
+                for (int i = 0; i < locks.Result.Count; i++)
+                {
+                    lockinfo.Add(new LocksInfo(locks.Result[i]));
+                }
+                return new OkObjectResult(lockinfo);
             }
-
-            return new OkObjectResult(lockinfo);
+            return new UnauthorizedResult();
         }
 
         /// <summary>
@@ -288,15 +337,20 @@ namespace Controllers
         public async Task<IActionResult> MeRentedlockesGet([FromHeader][Required()]string token)
         { 
             await Db.Connection.OpenAsync();
-            // TODO get userid based on token
-            LockQuerry manager = new LockQuerry(Db);
-            var locks = manager.FindRentedLocksAsync(7);
-            List<LocksInfo> lockinfo = new List<LocksInfo>(); 
-            for(int i = 0; i < locks.Result.Count; i++){
-                lockinfo.Add(new LocksInfo(locks.Result[i]));
+            AuthenticationHandler auth = new AuthenticationHandler(Db);
+            var authToken = auth.CheckAuth(token);
+            if (authToken.Result != null)
+            {
+                LockQuerry manager = new LockQuerry(Db);
+                var locks = manager.FindRentedLocksAsync(authToken.Result.Id);
+                List<LocksInfo> lockinfo = new List<LocksInfo>();
+                for (int i = 0; i < locks.Result.Count; i++)
+                {
+                    lockinfo.Add(new LocksInfo(locks.Result[i]));
+                }
+                return new OkObjectResult(lockinfo);
             }
-            
-            return new OkObjectResult(lockinfo);
+            return new UnauthorizedResult();
         }
 
         /// <summary>

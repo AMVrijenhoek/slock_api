@@ -62,5 +62,17 @@ namespace Controllers
             //if not, return false
             return false;
         }
+
+        public async Task<Boolean> CheckLockOwner(int lock_id, int user_id)
+        {
+            //check if user is owner
+            LockQuerry lockQuerry = new LockQuerry(Db);
+            Lock lockOwned = await lockQuerry.FindLocksByLockIdAsync(lock_id);
+            if (lockOwned.OwnerId == user_id)
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }

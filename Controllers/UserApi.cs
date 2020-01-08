@@ -56,24 +56,32 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("ChangeDetails")]
         [SwaggerResponse(statusCode: 200, type: typeof(User), description: "success")]
-        public virtual IActionResult ChangeDetails([FromHeader] [Required()] string token,
+        public virtual async Task<IActionResult> ChangeDetails([FromHeader] [Required()] string token,
             [FromBody] Userdetailchange body)
         {
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(User));
+            await Db.Connection.OpenAsync();
+            AuthenticationHandler auth = new AuthenticationHandler(Db);
+            var authToken = auth.CheckAuth(token);
+            if (authToken.Result != null)
+            {
 
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
+                //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
+                // return StatusCode(200, default(User));
 
-            string exampleJson = null;
-            exampleJson =
-                "{\n  \"firstName\" : \"firstName\",\n  \"lastName\" : \"lastName\",\n  \"phone\" : \"phone\",\n  \"email\" : \"email\",\n  \"username\" : \"username\"\n}";
+                //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
+                // return StatusCode(500);
 
-            var example = exampleJson != null
-                ? JsonConvert.DeserializeObject<User>(exampleJson)
-                : default(User);
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+                string exampleJson = null;
+                exampleJson =
+                    "{\n  \"firstName\" : \"firstName\",\n  \"lastName\" : \"lastName\",\n  \"phone\" : \"phone\",\n  \"email\" : \"email\",\n  \"username\" : \"username\"\n}";
+
+                var example = exampleJson != null
+                    ? JsonConvert.DeserializeObject<User>(exampleJson)
+                    : default(User);
+                //TODO: Change the data returned
+                return new ObjectResult(example);
+            }
+            return new UnauthorizedResult();
         }
 
         /// <summary>
@@ -177,23 +185,30 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("MeGet")]
         [SwaggerResponse(statusCode: 200, type: typeof(User), description: "success")]
-        public virtual IActionResult MeGet([FromHeader] [Required()] string token)
+        public virtual async Task<IActionResult> MeGet([FromHeader] [Required()] string token)
         {
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(User));
+            await Db.Connection.OpenAsync();
+            AuthenticationHandler auth = new AuthenticationHandler(Db);
+            var authToken = auth.CheckAuth(token);
+            if (authToken.Result != null)
+            {
+                //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
+                // return StatusCode(200, default(User));
 
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
+                //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
+                // return StatusCode(500);
 
-            string exampleJson = null;
-            exampleJson =
-                "{\n  \"firstName\" : \"firstName\",\n  \"lastName\" : \"lastName\",\n  \"phone\" : \"phone\",\n  \"email\" : \"email\",\n  \"username\" : \"username\"\n}";
+                string exampleJson = null;
+                exampleJson =
+                    "{\n  \"firstName\" : \"firstName\",\n  \"lastName\" : \"lastName\",\n  \"phone\" : \"phone\",\n  \"email\" : \"email\",\n  \"username\" : \"username\"\n}";
 
-            var example = exampleJson != null
-                ? JsonConvert.DeserializeObject<User>(exampleJson)
-                : default(User);
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+                var example = exampleJson != null
+                    ? JsonConvert.DeserializeObject<User>(exampleJson)
+                    : default(User);
+                //TODO: Change the data returned
+                return new ObjectResult(example);
+            }
+            return new UnauthorizedResult();
         }
 
         /// <summary>
