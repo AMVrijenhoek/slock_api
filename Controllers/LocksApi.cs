@@ -182,6 +182,7 @@ namespace Controllers
         public virtual async Task<IActionResult> LocksLockIdRatchettickPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Ratchetsync body)
         { 
             // check if user is allowed
+            await Db.Connection.OpenAsync();
             AuthenticationHandler auth = new AuthenticationHandler(Db);
             var authToken = auth.CheckAuth(token);
             if (authToken.Result != null)
@@ -195,13 +196,14 @@ namespace Controllers
 
                     var data = Encoding.UTF8.GetBytes(lockOwned.RachetKey + ";" + body.Counter);
                     SHA512 shaM = new SHA512Managed();
-                    var ratchetToken = shaM.ComputeHash(data).ToString();
+                    var ratchetTokenByte = shaM.ComputeHash(data);
+                    var ratchetToken = BitConverter.ToString(ratchetTokenByte).Replace("-", "").ToLower();
 
-                    if (body.Token == ratchetToken)
+                    if (body.Token.ToLower() == ratchetToken)
                     {
                         var test = body.Counter;
                         // check if previous counter is  bigger than current count
-                        if (Convert.ToInt32(body.Counter) > lockOwned.RachetCounter)
+                        if (Convert.ToInt32(body.Counter) >= lockOwned.RachetCounter)
                         {
                             // if that is all correct change the counter to previous counter +1
                             var ratchetCounter = Convert.ToInt32(body.Counter) + 1;
@@ -209,10 +211,14 @@ namespace Controllers
                             
                             return StatusCode(200);
                         }
+
+                        return StatusCode(500);
                     }
+                    return new BadRequestResult();
                 }
+                return new UnauthorizedResult();
             }
-            return StatusCode(500);
+            return new ForbidResult();
         }
 
         /// <summary>
@@ -230,7 +236,6 @@ namespace Controllers
         [SwaggerOperation("ShareLockPost")]
         public async Task<IActionResult> ShareLockPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Share body)
         {
-            await Db.Connection.OpenAsync();
             await Db.Connection.OpenAsync();
             AuthenticationHandler auth = new AuthenticationHandler(Db);
             var authToken = auth.CheckAuth(token);
@@ -273,6 +278,7 @@ namespace Controllers
         { 
             // this is the call to open lock
             // check if correct user
+            await Db.Connection.OpenAsync();
             AuthenticationHandler auth = new AuthenticationHandler(Db);
             var authToken = auth.CheckAuth(token);
             if (authToken.Result != null)
@@ -290,7 +296,8 @@ namespace Controllers
 
                     var data = Encoding.UTF8.GetBytes(preSharedSecret + ";" + ratchetCounter);
                     SHA512 shaM = new SHA512Managed();
-                    var ratchetToken = shaM.ComputeHash(data).ToString();
+                    var ratchetTokenByte = shaM.ComputeHash(data);
+                    var ratchetToken = BitConverter.ToString(ratchetTokenByte).Replace("-", "").ToLower();
 
                     // up the ratchet counter in the db
                     await lockOwned.UpdateRatchetCounter(lockId);

@@ -20,7 +20,7 @@ namespace Models
         public async Task<Rented> FindOneAsync(int id)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT id, locks_id, user_id, start end FROM `rented` WHERE `id` = @id";
+            cmd.CommandText = @"SELECT id, lock_id, user_id, start end FROM `rented` WHERE `id` = @id";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@id",
@@ -34,7 +34,7 @@ namespace Models
         public async Task<Rented> FindOneByLockId(int lock_id)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT id, locks_id, user_id, start end FROM `rented` WHERE `lock_id` = @lock_id";
+            cmd.CommandText = @"SELECT id, lock_id, user_id, start end FROM `rented` WHERE `lock_id` = @lock_id";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@lock_id",
@@ -48,7 +48,7 @@ namespace Models
         public async Task<Rented> FindOneByUserId(int userId)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT id, locks_id, user_id, start FROM `rented` WHERE `user_id` = @user_id";
+            cmd.CommandText = @"SELECT id, lock_id, user_id, start FROM `rented` WHERE `user_id` = @user_id";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@user_id",
