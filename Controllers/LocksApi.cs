@@ -63,20 +63,24 @@ namespace Controllers
                 LockQuerry lq = new LockQuerry(Db);
                 Lock locka = await lq.GetLockByProductKey(body.ProductKey);
                 // Update the lock
-                locka.Description = body.Description;
-                locka.RachetKey = body.RachetKey;
-                if (locka.OwnerId == null)
+                if (locka != null)
                 {
-                    locka.OwnerId = authToken.Result.Id;
-                }
-                else
-                {
-                    return new BadRequestObjectResult("Lock already has an owner");
-                }
+                    locka.Description = body.Description;
+                    locka.RachetKey = body.RachetKey;
+                    if (locka.OwnerId == null)
+                    {
+                        locka.OwnerId = authToken.Result.Id;
+                    }
+                    else
+                    {
+                        return new BadRequestObjectResult("Lock already has an owner");
+                    }
 
-                await locka.UpdateAsync();
+                    await locka.UpdateAsync();
 
-                return new OkObjectResult("Lock updated");
+                    return new OkObjectResult("Lock updated");
+                }
+                return new BadRequestObjectResult("Product key is incorrect");
             }
             return new UnauthorizedResult();
         }
@@ -187,7 +191,7 @@ namespace Controllers
                     {
                         var test = body.Counter;
                         // check if previous counter is  bigger than current count
-                        if (Convert.ToInt32(body.Counter) > lockOwned.RatchetCounter)
+                        if (Convert.ToInt32(body.Counter) > lockOwned.RachetCounter)
                         {
                             // if that is all correct change the counter to previous counter +1
                             var ratchetCounter = Convert.ToInt32(body.Counter) + 1;
@@ -271,7 +275,7 @@ namespace Controllers
                     Lock lockOwned = await lockQuerry.FindLocksByLockIdAsync(lockId);
                     
                     string preSharedSecret = lockOwned.RachetKey; //send by app to backend
-                    int ratchetCounter = lockOwned.RatchetCounter; // starts at 0 when registerd
+                    int ratchetCounter = lockOwned.RachetCounter; // starts at 0 when registerd
 
 
                     var data = Encoding.UTF8.GetBytes(preSharedSecret + ";" + ratchetCounter);

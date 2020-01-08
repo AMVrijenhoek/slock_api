@@ -53,7 +53,7 @@ namespace Models
         /// Gets or Sets ratchetCounter
         /// </summary>
         [DataMember(Name="ratchetCounter")]
-        public int RatchetCounter { get; set; }
+        public int RachetCounter { get; set; }
 
         /// <summary>
         /// Gets or Sets Address
@@ -149,7 +149,7 @@ namespace Models
             {
                 ParameterName = "@ratchet_counter",
                 DbType = DbType.String,
-                Value = RatchetCounter,
+                Value = RachetCounter,
             });
             cmd.Parameters.Add(new MySqlParameter
             {
@@ -177,7 +177,7 @@ namespace Models
             sb.Append("  Id: ").Append(Id).Append("\n");
             sb.Append("  ownerid: ").Append(OwnerId).Append("\n");
             sb.Append("  RachetKey: ").Append(RachetKey).Append("\n");
-            sb.Append("  RatchetCounter: ").Append(RatchetCounter).Append("\n");
+            sb.Append("  RatchetCounter: ").Append(RachetCounter).Append("\n");
             sb.Append("  Description: ").Append(Description).Append("\n");
             sb.Append("  ProductKey: ").Append(ProductKey).Append("\n");
             sb.Append("}\n");
@@ -233,7 +233,7 @@ namespace Models
                     RachetKey.Equals(other.RachetKey)
                 ) && 
                 (
-                    RatchetCounter == other.RatchetCounter //||
+                    RachetCounter == other.RachetCounter //||
                     // RatchetCounter != null &&
                     // RatchetCounter.Equals(other.RatchetCounter)
                 );
@@ -252,7 +252,7 @@ namespace Models
                     if (RachetKey != null)
                     hashCode = hashCode * 59 + RachetKey.GetHashCode();
                     // if (RatchetCounter != null)
-                    hashCode = hashCode * 59 + RatchetCounter.GetHashCode();
+                    hashCode = hashCode * 59 + RachetCounter.GetHashCode();
                     if (Description != null)
                     hashCode = hashCode * 59 + Description.GetHashCode();
                 return hashCode;
