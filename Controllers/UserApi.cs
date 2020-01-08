@@ -55,31 +55,37 @@ namespace Controllers
         [Route("/v1/changeDetails")]
         [ValidateModelState]
         [SwaggerOperation("ChangeDetails")]
-        [SwaggerResponse(statusCode: 200, type: typeof(User), description: "success")]
-        public virtual async Task<IActionResult> ChangeDetails([FromHeader] [Required()] string token,
-            [FromBody] Userdetailchange body)
+        // [SwaggerResponse(statusCode: 200, type: typeof(User), description: "success")]
+        public async Task<IActionResult> ChangeDetails([FromHeader] [Required()] string token, [FromBody] User body)
         {
             await Db.Connection.OpenAsync();
             AuthenticationHandler auth = new AuthenticationHandler(Db);
             var authToken = auth.CheckAuth(token);
             if (authToken.Result != null)
             {
+                UserQuerry userQuerry = new UserQuerry(Db);
+                User user = await userQuerry.FindOneAsync(authToken.Result.Id);
 
-                //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-                // return StatusCode(200, default(User));
-
-                //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-                // return StatusCode(500);
-
-                string exampleJson = null;
-                exampleJson =
-                    "{\n  \"firstName\" : \"firstName\",\n  \"lastName\" : \"lastName\",\n  \"phone\" : \"phone\",\n  \"email\" : \"email\",\n  \"username\" : \"username\"\n}";
-
-                var example = exampleJson != null
-                    ? JsonConvert.DeserializeObject<User>(exampleJson)
-                    : default(User);
-                //TODO: Change the data returned
-                return new ObjectResult(example);
+                if(body.FirstName != null){
+                    user.FirstName = body.FirstName;
+                }
+                if(body.LastName != null){
+                    user.LastName = body.LastName;
+                }
+                if(body.Email != null){
+                    // Check if there is already an user with this email
+                    User Usermail = await userQuerry.GetUserByEmail(body.Email);
+                    if(Usermail != null){
+                        return new BadRequestObjectResult("email already in use");
+                    }
+                    user.Email = body.Email;
+                }
+                if(body.Password != null){
+                    user.Password = body.Password;
+                    body.HashPass();
+                }
+                await user.UpdateAsync();
+                return new OkObjectResult("User succesfully updated");
             }
             return new UnauthorizedResult();
         }
@@ -184,7 +190,7 @@ namespace Controllers
         [Route("/v1/me")]
         [ValidateModelState]
         [SwaggerOperation("MeGet")]
-        [SwaggerResponse(statusCode: 200, type: typeof(User), description: "success")]
+        // [SwaggerResponse(statusCode: 200, type: typeof(User), description: "success")]
         public virtual async Task<IActionResult> MeGet([FromHeader] [Required()] string token)
         {
             await Db.Connection.OpenAsync();
@@ -192,21 +198,9 @@ namespace Controllers
             var authToken = auth.CheckAuth(token);
             if (authToken.Result != null)
             {
-                //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-                // return StatusCode(200, default(User));
-
-                //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-                // return StatusCode(500);
-
-                string exampleJson = null;
-                exampleJson =
-                    "{\n  \"firstName\" : \"firstName\",\n  \"lastName\" : \"lastName\",\n  \"phone\" : \"phone\",\n  \"email\" : \"email\",\n  \"username\" : \"username\"\n}";
-
-                var example = exampleJson != null
-                    ? JsonConvert.DeserializeObject<User>(exampleJson)
-                    : default(User);
-                //TODO: Change the data returned
-                return new ObjectResult(example);
+                UserQuerry userQuerry = new UserQuerry(Db);
+                User user = await userQuerry.FindOneAsync(authToken.Result.Id);
+                return new ObjectResult(new UserInfo(user));
             }
             return new UnauthorizedResult();
         }
