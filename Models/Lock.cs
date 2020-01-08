@@ -56,17 +56,28 @@ namespace Models
         public int RachetCounter { get; set; }
 
         /// <summary>
-        /// Gets or Sets Address
+        /// Gets or Sets description
         /// </summary>
         [DataMember(Name="Description")]
         public string Description { get; set; }
 
         /// <summary>
-        /// Gets or Sets Address
+        /// Gets or Sets productkey
         /// </summary>
         [DataMember(Name="ProductKey")]
         public string ProductKey { get; set; }
 
+        /// <summary>
+        /// Gets or Sets productkey
+        /// </summary>
+        [DataMember(Name="BleUuid")]
+        public string BleUuid { get; set; }
+        
+        /// <summary>
+        /// Gets or Sets productkey
+        /// </summary>
+        [DataMember(Name="DisplayName")]
+        public string DisplayName { get; set; }
         internal AppDb Db { get; set; }
 
         internal Lock()
@@ -78,7 +89,7 @@ namespace Models
         public async Task InsertAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"INSERT INTO `locks` (`owner_id`, `ratchet_key`, `ratchet_counter`, `description`, `product_key`) VALUES (@owner_id, @ratchet_key, @ratchet_counter, @description, @product_key);";
+            cmd.CommandText = @"INSERT INTO `locks` (`owner_id`, `ratchet_key`, `ratchet_counter`, `description`, `product_key`, `bleuuid`, `displayname`) VALUES (@owner_id, @ratchet_key, @ratchet_counter, @description, @product_key, @bleuuid, @displayname);";
             BindParams(cmd);
             await cmd.ExecuteNonQueryAsync();
             Id = (int) cmd.LastInsertedId;
@@ -87,7 +98,7 @@ namespace Models
         public async Task UpdateAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"UPDATE `locks` SET `owner_id` = @owner_id, `ratchet_key` = @ratchet_key, `ratchet_counter` = @ratchet_counter, `description` = @description WHERE `id` = @id;";
+            cmd.CommandText = @"UPDATE `locks` SET `owner_id` = @owner_id, `ratchet_key` = @ratchet_key, `ratchet_counter` = @ratchet_counter, `description` = @description, `bleuuid` = @bleuuid, `displayname` = @displayname WHERE `id` = @id;";
             BindParams(cmd);
             BindId(cmd);
             await cmd.ExecuteNonQueryAsync();
@@ -163,6 +174,18 @@ namespace Models
                 DbType = DbType.String,
                 Value = ProductKey,
             });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@bleuuid",
+                DbType = DbType.String,
+                Value = BleUuid,
+            });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@displayname",
+                DbType = DbType.String,
+                Value = DisplayName,
+            });
         }
 
 
@@ -180,6 +203,8 @@ namespace Models
             sb.Append("  RatchetCounter: ").Append(RachetCounter).Append("\n");
             sb.Append("  Description: ").Append(Description).Append("\n");
             sb.Append("  ProductKey: ").Append(ProductKey).Append("\n");
+            sb.Append("  BleUuid: ").Append(BleUuid).Append("\n");
+            sb.Append("  DisplayName: ").Append(DisplayName).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }

@@ -65,11 +65,13 @@ namespace Controllers
                 // Update the lock
                 if (locka != null)
                 {
-                    locka.Description = body.Description;
-                    locka.RachetKey = body.RachetKey;
                     if (locka.OwnerId == null)
                     {
                         locka.OwnerId = authToken.Result.Id;
+                        locka.Description = body.Description;
+                        locka.RachetKey = body.RachetKey;
+                        locka.BleUuid = body.BleUuid;
+                        locka.DisplayName = body.DisplayName;
                     }
                     else
                     {
@@ -111,7 +113,15 @@ namespace Controllers
                     LockQuerry lq = new LockQuerry(Db);
                     var locka = await lq.FindOneAsync(lockId);
                     // Update the lock
-                    locka.Description = body.Description;
+                    if (body.Description != null)
+                    {
+                        locka.Description = body.Description; 
+                    }
+
+                    if (body.DisplayName != null)
+                    {
+                        locka.DisplayName = body.DisplayName;
+                    }
                     await locka.UpdateAsync();
 
                     return new OkObjectResult("Lock updated");

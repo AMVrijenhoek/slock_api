@@ -19,7 +19,7 @@ namespace Models
         public async Task<Lock> FindOneAsync(int id)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description FROM `locks` WHERE `id` = @id";
+            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description, product_key, bleuuid, displayname FROM `locks` WHERE `id` = @id";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@id",
@@ -33,7 +33,7 @@ namespace Models
         public async Task<Lock> GetLockByProductKey(string productKey)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description, product_key FROM `locks` WHERE `product_key` = @product_key";
+            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description, product_key, bleuuid, displayname FROM `locks` WHERE `product_key` = @product_key";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@product_key",
@@ -47,7 +47,7 @@ namespace Models
         public async Task<List<Lock>> FindLocksByOwnerAsync(int ownerid)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description FROM `locks` WHERE `owner_id` = @ownerid";
+            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description, product_key, bleuuid, displayname FROM `locks` WHERE `owner_id` = @ownerid";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@ownerid",
@@ -61,7 +61,7 @@ namespace Models
         public async Task<Lock> FindLocksByLockIdAsync(int lock_id)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description, product_key FROM `locks` WHERE `id` = @lockId";
+            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description, product_key, bleuuid, displayname FROM `locks` WHERE `id` = @lockId";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@lockId",
@@ -75,7 +75,7 @@ namespace Models
         public async Task<List<Lock>> FindRentedLocksAsync(int userid)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT l.id, owner_id, ratchet_key, ratchet_counter, description, product_key 
+            cmd.CommandText = @"SELECT l.id, owner_id, ratchet_key, ratchet_counter, description, product_key, bleuuid, displayname 
                                 FROM `locks` l
                                     JOIN `rented` r ON l.id = r.lock_id
                                 WHERE r.`user_id` = @userid";
@@ -122,6 +122,8 @@ namespace Models
                         RachetCounter = reader.IsDBNull(3) ? (int) 0 : reader.GetInt32(3),
                         Description = reader.IsDBNull(4) ? (string) null : reader.GetString(4),
                         ProductKey = reader.IsDBNull(4) ? (string) null : reader.GetString(5),
+                        BleUuid = reader.IsDBNull(4) ? (string) null : reader.GetString(6),
+                        DisplayName = reader.IsDBNull(4) ? (string) null : reader.GetString(7),
                     };
                     locks.Add(door);
                 }
