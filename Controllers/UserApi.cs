@@ -245,9 +245,9 @@ namespace Controllers
                 body.HashPass();
                 await body.InsertAsync();
 
-                MailHendler mailHendler = new MailHendler();
+                MailHandler mailHandler = new MailHandler();
 
-                mailHendler.Execute(body.Email, body.FirstName, body.Verified);
+                mailHandler.Execute(body.Email, body.FirstName, body.Verified);
 
                 return new OkObjectResult("Account succesfully made");
             }
@@ -287,8 +287,8 @@ namespace Controllers
             if (resendUser.Verified != "true")
             {
                 // if not resend email
-                MailHendler mailHendler = new MailHendler();
-                mailHendler.Execute(body.Email, resendUser.FirstName, resendUser.Verified);
+                MailHandler mailHandler = new MailHandler();
+                mailHandler.Execute(body.Email, resendUser.FirstName, resendUser.Verified);
                 return new OkObjectResult("email resend");
             }
             else

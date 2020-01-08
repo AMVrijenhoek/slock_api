@@ -33,7 +33,7 @@ namespace Models
         public async Task<Lock> GetLockByProductKey(string productKey)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description FROM `locks` WHERE `product_key` = @product_key";
+            cmd.CommandText = @"SELECT id, owner_id, ratchet_key, ratchet_counter, description, product_key FROM `locks` WHERE `product_key` = @product_key";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@product_key",
@@ -121,6 +121,7 @@ namespace Models
                         RachetKey = reader.IsDBNull(2) ? (string) null : reader.GetString(2),
                         RatchetCounter = reader.IsDBNull(3) ? (int) 0 : reader.GetInt32(3),
                         Description = reader.IsDBNull(4) ? (string) null : reader.GetString(4),
+                        ProductKey = reader.IsDBNull(4) ? (string) null : reader.GetString(5),
                     };
                     locks.Add(door);
                 }

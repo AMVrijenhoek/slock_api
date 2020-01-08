@@ -59,15 +59,15 @@ namespace Controllers
             if (authToken.Result != null)
             {
                 //TODO maybe check if the lock is not already activated
-                await Db.Connection.OpenAsync();
                 // Get lock we want to update
                 LockQuerry lq = new LockQuerry(Db);
-                var locka = await lq.GetLockByProductKey(body.ProductKey);
+                Lock locka = await lq.GetLockByProductKey(body.ProductKey);
                 // Update the lock
                 locka.Description = body.Description;
+                locka.RachetKey = body.RachetKey;
                 if (locka.OwnerId == null)
                 {
-                    locka.OwnerId = body.OwnerId;
+                    locka.OwnerId = authToken.Result.Id;
                 }
                 else
                 {

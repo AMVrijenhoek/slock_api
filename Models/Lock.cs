@@ -179,6 +179,7 @@ namespace Models
             sb.Append("  RachetKey: ").Append(RachetKey).Append("\n");
             sb.Append("  RatchetCounter: ").Append(RatchetCounter).Append("\n");
             sb.Append("  Description: ").Append(Description).Append("\n");
+            sb.Append("  ProductKey: ").Append(ProductKey).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }

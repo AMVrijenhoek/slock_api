@@ -6,14 +6,11 @@ using SendGrid.Helpers.Mail;
 
 namespace Models
 {
-    public class MailHendler
+    public class MailHandler
     {
         public /*async*/ void Execute(string email, string frist_name, string verifyToken)
         {
-            Environment.SetEnvironmentVariable("apiKeySendGrid",
-                "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");
-            
-            var apiKey = Environment.GetEnvironmentVariable("apiKeySendGrid");
+            var apiKey = Environment.GetEnvironmentVariable("slock_api_key");
             var client = new SendGridClient(apiKey);
             var emailMessage = new SendGridMessage();
             emailMessage.SetFrom("no_reply@slock.nl", "SLOCK");
