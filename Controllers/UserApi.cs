@@ -235,7 +235,7 @@ namespace Controllers
                 await registerUser.GetUserByUsername(body.Username) == null)
             {
                 body.Db = Db;
-                body.Verified = Helpers.SecureRandomNumber();
+                body.Verified = Helpers.SecureRandomNumber(42);
                 body.HashPass();
                 await body.InsertAsync();
 
