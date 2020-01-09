@@ -132,7 +132,7 @@ namespace Controllers
                         }
 
                         sessions.InsertLoginTable(user.Id, generatedToken);
-
+                        Db.Dispose();
                         return new OkObjectResult(generatedToken);
                     }
                     else

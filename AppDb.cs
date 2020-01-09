@@ -3,7 +3,7 @@ using MySql.Data.MySqlClient;
 
 namespace api.db
 {
-    public class AppDb : IDisposable
+    public class AppDb
     {
         public MySqlConnection Connection { get; }
 
