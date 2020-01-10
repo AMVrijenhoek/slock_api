@@ -75,15 +75,19 @@ namespace Controllers
                     }
                     else
                     {
+                        Db.Dispose();
                         return new BadRequestObjectResult("Lock already has an owner");
                     }
 
                     await locka.UpdateAsync();
 
+                    Db.Dispose();
                     return new OkObjectResult("Lock updated");
                 }
+                Db.Dispose();
                 return new BadRequestObjectResult("Product key is incorrect");
             }
+            Db.Dispose();
             return new UnauthorizedResult();
         }
 
@@ -124,10 +128,13 @@ namespace Controllers
                     }
                     await locka.UpdateAsync();
 
+                    Db.Dispose();
                     return new OkObjectResult("Lock updated");
                 }
+                Db.Dispose();
                 return new UnauthorizedResult();
             }
+            Db.Dispose();
             return new UnauthorizedResult();
         }
 
@@ -159,10 +166,13 @@ namespace Controllers
                     locka.OwnerId = null;
                     await locka.UpdateAsync();
 
+                    Db.Dispose();
                     return new OkObjectResult("Lock updated");
                 }
+                Db.Dispose();
                 return new UnauthorizedResult();
             }
+            Db.Dispose();
             return new UnauthorizedResult();
         }
 
@@ -208,16 +218,20 @@ namespace Controllers
                             // if that is all correct change the counter to previous counter +1
                             var ratchetCounter = Convert.ToInt32(body.Counter) + 1;
                             await lockOwned.SyncRatchetCounter(lockId, ratchetCounter);
-                            
+                            Db.Dispose();
                             return StatusCode(200);
                         }
 
+                        Db.Dispose();
                         return StatusCode(500);
                     }
+                    Db.Dispose();
                     return new BadRequestResult();
                 }
+                Db.Dispose();
                 return new UnauthorizedResult();
             }
+            Db.Dispose();
             return new ForbidResult();
         }
 
@@ -254,11 +268,14 @@ namespace Controllers
 
                     await rLock.InsertAsync();
 
+                    Db.Dispose();
                     return new OkObjectResult("Access Granted");
                 }
 
+                Db.Dispose();
                 return new UnauthorizedResult();
             }
+            Db.Dispose();
             return new UnauthorizedResult();
         }
 
@@ -303,11 +320,12 @@ namespace Controllers
                     await lockOwned.UpdateRatchetCounter(lockId);
                         
                     // return token
+                    Db.Dispose();
                     return new OkObjectResult(ratchetToken);
                 }
                 
             }
-            
+            Db.Dispose();
             return StatusCode(500);
         }
 
@@ -338,8 +356,10 @@ namespace Controllers
                 {
                     lockinfo.Add(new LocksInfo(locks.Result[i]));
                 }
+                Db.Dispose();
                 return new OkObjectResult(lockinfo);
             }
+            Db.Dispose();
             return new UnauthorizedResult();
         }
 
@@ -369,8 +389,10 @@ namespace Controllers
                 {
                     lockinfo.Add(new LocksInfo(locks.Result[i]));
                 }
+                Db.Dispose();
                 return new OkObjectResult(lockinfo);
             }
+            Db.Dispose();
             return new UnauthorizedResult();
         }
 
@@ -390,6 +412,7 @@ namespace Controllers
             await Db.Connection.OpenAsync();
             body.Db = Db;
             await body.InsertAsync();
+            Db.Dispose();
             return new OkObjectResult("Lock succesfully made");
         }
     }

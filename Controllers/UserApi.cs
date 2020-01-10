@@ -76,6 +76,7 @@ namespace Controllers
                     // Check if there is already an user with this email
                     User Usermail = await userQuerry.GetUserByEmail(body.Email);
                     if(Usermail != null){
+                        Db.Dispose();
                         return new BadRequestObjectResult("email already in use");
                     }
                     user.Email = body.Email;
@@ -85,8 +86,10 @@ namespace Controllers
                     body.HashPass();
                 }
                 await user.UpdateAsync();
+                Db.Dispose();
                 return new OkObjectResult("User succesfully updated");
             }
+            Db.Dispose();
             return new UnauthorizedResult();
         }
 
@@ -137,15 +140,18 @@ namespace Controllers
                     }
                     else
                     {
+                        Db.Dispose();
                         return new UnauthorizedObjectResult("Login incorrect");
                     }
                 }
                 else
                 {
+                    Db.Dispose();
                     return new StatusCodeResult(412);
                 }
             }
             // return error code if above fails
+            Db.Dispose();
             return new BadRequestObjectResult("User not found");
         }
 
@@ -174,8 +180,10 @@ namespace Controllers
                 Loginsession session = await sessions.FindOneByUserId(authToken.Result.Id);
                 await session.DeleteAsync();
 
+                Db.Dispose();
                 return StatusCode(200);
             }
+            Db.Dispose();
             return StatusCode(500);
         }
 
@@ -200,8 +208,10 @@ namespace Controllers
             {
                 UserQuerry userQuerry = new UserQuerry(Db);
                 User user = await userQuerry.FindOneAsync(authToken.Result.Id);
+                Db.Dispose();
                 return new ObjectResult(new UserInfo(user));
             }
+            Db.Dispose();
             return new UnauthorizedResult();
         }
 
@@ -243,9 +253,11 @@ namespace Controllers
 
                 mailHandler.Execute(body.Email, body.FirstName, body.Verified);
 
+                Db.Dispose();
                 return new OkObjectResult("Account succesfully made");
             }
 
+            Db.Dispose();
             return new BadRequestObjectResult("Account already exists");
         }
 
@@ -262,6 +274,7 @@ namespace Controllers
 
             // TODO some page to show the person succeeded
 //            return base.Content("<script>window.close();</script>", "text/html");
+            Db.Dispose();
             return new OkObjectResult("success");
         }
         
@@ -283,11 +296,13 @@ namespace Controllers
                 // if not resend email
                 MailHandler mailHandler = new MailHandler();
                 mailHandler.Execute(body.Email, resendUser.FirstName, resendUser.Verified);
+                Db.Dispose();
                 return new OkObjectResult("email resend");
             }
             else
             {
                 // if is then give error
+                Db.Dispose();
                 return new ConflictObjectResult("User Already verified");
             }
         }
