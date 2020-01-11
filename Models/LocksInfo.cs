@@ -21,11 +21,15 @@ namespace Models{
 
         public int Id{ get; set; }
         public String Description{ get; set; }
+        public String DisplayName{ get; set; }
+        public String BleUuid{ get; set; }
 
         internal LocksInfo(){}
         internal LocksInfo(Lock locky){
             this.Id = locky.Id;
             this.Description = locky.Description;
+            this.DisplayName = locky.DisplayName;
+            this.BleUuid = locky.BleUuid;
         }
     }
 
