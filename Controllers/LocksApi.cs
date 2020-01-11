@@ -348,7 +348,6 @@ namespace Controllers
             var authToken = auth.CheckAuth(token);
             if (authToken.Result != null)
             {
-                await Db.Connection.OpenAsync();
                 LockQuerry manager = new LockQuerry(Db);
                 var locks = manager.FindLocksByOwnerAsync(authToken.Result.Id);
                 List<LocksInfo> lockinfo = new List<LocksInfo>();
