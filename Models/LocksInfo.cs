@@ -1,22 +1,7 @@
-
 using System;
-using System.Data;
-using System.Linq;
-using System.IO;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
-using api.db;
-using MySql.Data.MySqlClient;
-using System.Threading.Tasks;
 
 namespace Models{
-
-
+    // This class exists so we can return a stripped down version of the lock class without a bunch of null values.
     public class LocksInfo{
 
         public int Id{ get; set; }
@@ -25,6 +10,8 @@ namespace Models{
         public String BleUuid{ get; set; }
 
         internal LocksInfo(){}
+        
+        // Build based on existing lock
         internal LocksInfo(Lock locky){
             this.Id = locky.Id;
             this.Description = locky.Description;
@@ -32,5 +19,4 @@ namespace Models{
             this.BleUuid = locky.BleUuid;
         }
     }
-
 }

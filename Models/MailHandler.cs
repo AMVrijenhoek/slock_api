@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SendGrid;
 using SendGrid.Helpers.Mail;
@@ -8,7 +7,7 @@ namespace Models
 {
     public class MailHandler
     {
-        public /*async*/ void Execute(string email, string frist_name, string verifyToken)
+        public void Execute(string email, string frist_name, string verifyToken)
         {
             var apiKey = Environment.GetEnvironmentVariable("slock_api_key");
             var client = new SendGridClient(apiKey);
