@@ -56,7 +56,7 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("ChangeDetails")]
         // [SwaggerResponse(statusCode: 200, type: typeof(User), description: "success")]
-        public async Task<IActionResult> ChangeDetails([FromHeader] [Required()] string token, [FromBody] User body)
+        public async Task<IActionResult> ChangeDetails([FromHeader] [Required()] string token, [FromBody] Userdetailchange body)
         {
             await Db.Connection.OpenAsync();
             AuthenticationHandler auth = new AuthenticationHandler(Db);
@@ -72,18 +72,23 @@ namespace Controllers
                 if(body.LastName != null){
                     user.LastName = body.LastName;
                 }
-                if(body.Email != null){
-                    // Check if there is already an user with this email
-                    User Usermail = await userQuerry.GetUserByEmail(body.Email);
-                    if(Usermail != null){
-                        Db.Dispose();
-                        return new BadRequestObjectResult("email already in use");
+//                if(body.Email != null){
+//                    // Check if there is already an user with this email
+//                    body.EmailToLowerCase();
+//                    User Usermail = await userQuerry.GetUserByEmail(body.Email);
+//                    if(Usermail != null){
+//                        Db.Dispose();
+//                        return new BadRequestObjectResult("email already in use");
+//                    }
+//                    user.Email = body.Email;
+//                }
+                if(body.Newpassword != null){
+                    if (BCryptHelper.CheckPassword(body.Currentpassword, user.Password)) //body.Password has to be hashed with
+                    {
+                        
+                        user.Password = body.Newpassword;
+                        user.HashPass();
                     }
-                    user.Email = body.Email;
-                }
-                if(body.Password != null){
-                    user.Password = body.Password;
-                    body.HashPass();
                 }
                 await user.UpdateAsync();
                 Db.Dispose();
