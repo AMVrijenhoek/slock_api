@@ -40,7 +40,7 @@ namespace Controllers
         [Route("/v1/changeDetails")]
         [ValidateModelState]
         [SwaggerOperation("ChangeDetails")]
-        public async Task<IActionResult> ChangeDetails([FromHeader] [Required()] string token, [FromBody] User body)
+        public async Task<IActionResult> ChangeDetails([FromHeader] [Required()] string token, [FromBody] Userdetailchange body)
         {
             await Db.Connection.OpenAsync();
             AuthenticationHandler auth = new AuthenticationHandler(Db);
