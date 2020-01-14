@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.IO.Pipelines;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 using api.db;
@@ -72,24 +70,6 @@ namespace Models
             });
             cmd.ExecuteNonQueryAsync();
         }
-
-        /*
-        public async Task<List<BlogPost>> LatestPostsAsync()
-        {
-            using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT `Id`, `Title`, `Content` FROM `BlogPost` ORDER BY `Id` DESC LIMIT 10;";
-            return await ReadAllAsync(await cmd.ExecuteReaderAsync());
-        }
-
-        public async Task DeleteAllAsync()
-        {
-            using var txn = await Db.Connection.BeginTransactionAsync();
-            using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"DELETE FROM `BlogPost`";
-            await cmd.ExecuteNonQueryAsync();
-            await txn.CommitAsync();
-        }
-        /**/
 
         private async Task<List<User>> ReadAllAsync(DbDataReader reader)
         {

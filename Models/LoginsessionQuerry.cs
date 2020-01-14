@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -79,24 +78,6 @@ namespace Models
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
             return result.Count > 0 ? result[0] : null;
         }
-
-        /*
-        public async Task<List<BlogPost>> LatestPostsAsync()
-        {
-            using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT `Id`, `Title`, `Content` FROM `BlogPost` ORDER BY `Id` DESC LIMIT 10;";
-            return await ReadAllAsync(await cmd.ExecuteReaderAsync());
-        }
-
-        public async Task DeleteAllAsync()
-        {
-            using var txn = await Db.Connection.BeginTransactionAsync();
-            using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"DELETE FROM `BlogPost`";
-            await cmd.ExecuteNonQueryAsync();
-            await txn.CommitAsync();
-        }
-        /**/
 
         private async Task<List<Loginsession>> ReadAllAsync(DbDataReader reader)
         {
