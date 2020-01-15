@@ -385,7 +385,8 @@ namespace Controllers
         [ValidateModelState]
         [SwaggerOperation("AddLock")]
         public async Task<IActionResult> AddLock([FromBody]Lock body)
-        { 
+        {
+            return StatusCode(300);
             await Db.Connection.OpenAsync();
             body.Db = Db;
             await body.InsertAsync();
