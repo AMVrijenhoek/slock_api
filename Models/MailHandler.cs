@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Newtonsoft.Json;
 using SendGrid;
 using SendGrid.Helpers.Mail;
@@ -9,7 +10,12 @@ namespace Models
     {
         public void Execute(string email, string frist_name, string verifyToken)
         {
-            var apiKey = Environment.GetEnvironmentVariable("slock_api_key");
+            
+            var apiKey = File.ReadAllText("/home/SLOCK_User/slock_api_key");
+            if (apiKey == null)
+            {
+                apiKey = Environment.GetEnvironmentVariable("slock_api_key"); 
+            }
             var client = new SendGridClient(apiKey);
             var emailMessage = new SendGridMessage();
             emailMessage.SetFrom("no_reply@slock.nl", "SLOCK");

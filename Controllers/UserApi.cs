@@ -269,6 +269,7 @@ namespace Controllers
         [SwaggerOperation("resendemail")]
         public async Task<IActionResult> ResendEmail([FromBody] Login body)
         {
+            await Db.Connection.OpenAsync();
             body.Email = body.Email.ToLower();
             
             //create user object and fill it with user
