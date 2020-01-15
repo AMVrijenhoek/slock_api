@@ -78,7 +78,9 @@ namespace Models
             cmd.CommandText = @"SELECT l.id, owner_id, ratchet_key, ratchet_counter, description, product_key, bleuuid, displayname 
                                 FROM `locks` l
                                     JOIN `rented` r ON l.id = r.lock_id
-                                WHERE r.`user_id` = @userid";
+                                WHERE r.`user_id` = @userid 
+                                    AND r.`start` < NOW()
+                                    AND r.`end` > NOW()";
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@userid",
@@ -88,24 +90,6 @@ namespace Models
             var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
             return result;
         }
-
-        /*
-        public async Task<List<BlogPost>> LatestPostsAsync()
-        {
-            using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT `Id`, `Title`, `Content` FROM `BlogPost` ORDER BY `Id` DESC LIMIT 10;";
-            return await ReadAllAsync(await cmd.ExecuteReaderAsync());
-        }
-
-        public async Task DeleteAllAsync()
-        {
-            using var txn = await Db.Connection.BeginTransactionAsync();
-            using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"DELETE FROM `BlogPost`";
-            await cmd.ExecuteNonQueryAsync();
-            await txn.CommitAsync();
-        }
-        /**/
 
         private async Task<List<Lock>> ReadAllAsync(DbDataReader reader)
         {
@@ -121,9 +105,9 @@ namespace Models
                         RachetKey = reader.IsDBNull(2) ? (string) null : reader.GetString(2),
                         RachetCounter = reader.IsDBNull(3) ? (int) 0 : reader.GetInt32(3),
                         Description = reader.IsDBNull(4) ? (string) null : reader.GetString(4),
-                        ProductKey = reader.IsDBNull(4) ? (string) null : reader.GetString(5),
-                        BleUuid = reader.IsDBNull(4) ? (string) null : reader.GetString(6),
-                        DisplayName = reader.IsDBNull(4) ? (string) null : reader.GetString(7),
+                        ProductKey = reader.IsDBNull(5) ? (string) null : reader.GetString(5),
+                        BleUuid = reader.IsDBNull(6) ? (string) null : reader.GetString(6),
+                        DisplayName = reader.IsDBNull(7) ? (string) null : reader.GetString(7),
                     };
                     locks.Add(door);
                 }

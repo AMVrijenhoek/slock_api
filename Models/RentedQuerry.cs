@@ -58,24 +58,6 @@ namespace Models
             return result.Count > 0 ? result[0] : null;
         }
 
-        /*
-        public async Task<List<BlogPost>> LatestPostsAsync()
-        {
-            using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT `Id`, `Title`, `Content` FROM `BlogPost` ORDER BY `Id` DESC LIMIT 10;";
-            return await ReadAllAsync(await cmd.ExecuteReaderAsync());
-        }
-
-        public async Task DeleteAllAsync()
-        {
-            using var txn = await Db.Connection.BeginTransactionAsync();
-            using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"DELETE FROM `BlogPost`";
-            await cmd.ExecuteNonQueryAsync();
-            await txn.CommitAsync();
-        }
-        /**/
-
         private async Task<List<Rented>> ReadAllAsync(DbDataReader reader)
         {
             var rented = new List<Rented>();
@@ -88,8 +70,8 @@ namespace Models
                         Id = reader.GetInt32(0),
                         LockId = reader.GetInt32(1),
                         UserId = reader.GetInt32(2),
-                        Start = reader.GetString(3),
-                        End = reader.GetString(4),
+                        StartDate = reader.GetDateTime(3),
+                        EndDate = reader.GetDateTime(4)
                     };
                     rented.Add(rent);
                 }

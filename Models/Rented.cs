@@ -32,12 +32,11 @@ namespace Models
 
         /// Gets or Sets start
         [DataMember(Name="start")]
-        // public DateTime Start { get; set; }
-        public String Start { get; set; }
+        public DateTime StartDate { get; set; }
 
         /// Gets or Sets end
         [DataMember(Name="end")]
-        public String End { get; set; }
+        public DateTime EndDate { get; set; }
 
         internal AppDb Db { get; set; }
 
@@ -97,13 +96,13 @@ namespace Models
             {
                 ParameterName = "@start",
                 DbType = DbType.String,
-                Value = Start,
+                Value = StartDate,
             });
             cmd.Parameters.Add(new MySqlParameter
             {
                 ParameterName = "@end",
                 DbType = DbType.String,
-                Value = End,
+                Value = EndDate,
             });
         }
 

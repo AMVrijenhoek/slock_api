@@ -27,11 +27,14 @@ namespace Models
 
         /// Gets or Sets StartDate
         [DataMember(Name="startDate")]
-        public String StartDate { get; set; }
+        public DateTime StartDate { get; set; }
 
         /// Gets or Sets EndDate
         [DataMember(Name="endDate")]
-        public String EndDate { get; set; }
+        public DateTime EndDate { get; set; }
+
+        // [DataMember(Name="iso")]
+        // public DateTime Iso{get;set;}
 
         /// Returns the string presentation of the object
         /// <returns>String presentation of the object</returns>

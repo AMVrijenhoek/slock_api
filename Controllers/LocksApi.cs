@@ -247,8 +247,8 @@ namespace Controllers
                     // Setup stuf to create the new rented
                     Rented rLock = new Rented(Db);
                     rLock.LockId = lockId;
-                    rLock.Start = body.StartDate;
-                    rLock.End = body.EndDate;
+                    rLock.StartDate = body.StartDate;
+                    rLock.EndDate = body.EndDate;
                     rLock.UserId = helper.GetUserByUsername(body.Username).Result.Id;
 
                     await rLock.InsertAsync();
@@ -293,7 +293,6 @@ namespace Controllers
                     
                     string preSharedSecret = lockOwned.RachetKey; //send by app to backend
                     int ratchetCounter = lockOwned.RachetCounter; // starts at 0 when registerd
-
 
                     var data = Encoding.UTF8.GetBytes(preSharedSecret + ";" + ratchetCounter);
                     SHA512 shaM = new SHA512Managed();
