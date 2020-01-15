@@ -297,7 +297,7 @@ namespace Controllers
                     var data = Encoding.UTF8.GetBytes(preSharedSecret + ";" + ratchetCounter);
                     SHA512 shaM = new SHA512Managed();
                     var ratchetTokenByte = shaM.ComputeHash(data);
-                    var ratchetToken = BitConverter.ToString(ratchetTokenByte).Replace("-", "").ToLower();
+                    var ratchetToken = Convert.ToBase64String(ratchetTokenByte);
 
                     // up the ratchet counter in the db
                     await lockOwned.UpdateRatchetCounter(lockId);
