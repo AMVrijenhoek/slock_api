@@ -157,10 +157,46 @@ namespace Controllers
                     return new OkObjectResult("Lock updated");
                 }
                 Db.Dispose();
-                return new UnauthorizedResult();
+                return StatusCode(403);
             }
             Db.Dispose();
             return new UnauthorizedResult();
+        }
+
+        /// <summary>
+        /// ticks the ratched
+        /// </summary>
+        /// <param name="token"></param>
+        /// <response code="200">success</response>
+        /// <response code="500">server error</response>
+        [HttpGet]
+        [Route("/v1/locks/{lockId}/ratchettick")]
+        [ValidateModelState]
+        [SwaggerOperation("LocksLockIdRatchettickget")]
+        public async Task<IActionResult> LocksLockIdRatchettickPost([FromRoute] [Required] int lockId,
+            [FromHeader] [Required()] string token)
+        {
+            await Db.Connection.OpenAsync();
+            AuthenticationHandler auth = new AuthenticationHandler(Db);
+            var authToken = auth.CheckAuth(token);
+            if (authToken.Result != null)
+            {
+                // check if user can open lock
+                if (await auth.CheckLockUser(lockId, authToken.Result.Id) == true)
+                {
+                    LockQuerry lockQuerry = new LockQuerry(Db);
+                    Lock lockOwned = await lockQuerry.FindLocksByLockIdAsync(lockId);
+
+                    // up the ratchet counter in the db
+                    await lockOwned.UpdateRatchetCounter(lockId);
+                    Db.Dispose();
+                    return StatusCode(200);
+                }
+                Db.Dispose();
+                return StatusCode(403);
+            }
+            Db.Dispose();
+            return StatusCode(401);
         }
 
         /// <summary>
@@ -172,10 +208,10 @@ namespace Controllers
         /// <response code="200">success</response>
         /// <response code="500">server error</response>
         [HttpPost]
-        [Route("/v1/locks/{lockId}/ratchettick")]
+        [Route("/v1/locks/{lockId}/ratchetsync")]
         [ValidateModelState]
-        [SwaggerOperation("LocksLockIdRatchettickPost")]
-        public async Task<IActionResult> LocksLockIdRatchettickPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Ratchetsync body)
+        [SwaggerOperation("LocksLockIdRatchetsyncPost")]
+        public async Task<IActionResult> LocksLockIdRatchetsyncPost([FromRoute][Required]int lockId, [FromHeader][Required()]string token, [FromBody]Ratchetsync body)
         { 
             // check if user is allowed
             await Db.Connection.OpenAsync();
@@ -299,9 +335,6 @@ namespace Controllers
                     var ratchetTokenByte = shaM.ComputeHash(data);
                     var ratchetToken = Convert.ToBase64String(ratchetTokenByte);
 
-                    // up the ratchet counter in the db
-                    await lockOwned.UpdateRatchetCounter(lockId);
-                        
                     // return token
                     Db.Dispose();
                     return new OkObjectResult(ratchetToken);
