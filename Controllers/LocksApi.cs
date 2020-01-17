@@ -229,9 +229,9 @@ namespace Controllers
                     var data = Encoding.UTF8.GetBytes(lockOwned.RachetKey + ";" + body.Counter);
                     SHA512 shaM = new SHA512Managed();
                     var ratchetTokenByte = shaM.ComputeHash(data);
-                    var ratchetToken = BitConverter.ToString(ratchetTokenByte).Replace("-", "").ToLower();
+                    var ratchetToken = Convert.ToBase64String(ratchetTokenByte);
 
-                    if (body.Token.ToLower() == ratchetToken)
+                    if (body.Token == ratchetToken)
                     {
                         var test = body.Counter;
                         // check if previous counter is  bigger than current count
@@ -339,10 +339,11 @@ namespace Controllers
                     Db.Dispose();
                     return new OkObjectResult(ratchetToken);
                 }
-                
+
+                return StatusCode(401);
             }
             Db.Dispose();
-            return StatusCode(500);
+            return StatusCode(403);
         }
 
         /// <summary>
