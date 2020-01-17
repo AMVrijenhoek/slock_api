@@ -29,20 +29,20 @@ namespace Controllers
             return null;
         }
 
-        public async Task<Boolean> CheckLockUser(int lock_id, int user_id)
+        public async Task<Boolean> CheckLockUser(int lockId, int userId)
         {
             //check if user is owner
             LockQuerry lockQuerry = new LockQuerry(Db);
-            Lock lockOwned = await lockQuerry.FindLocksByLockIdAsync(lock_id);
-            if (lockOwned.OwnerId == user_id)
+            Lock lockOwned = await lockQuerry.FindLocksByLockIdAsync(lockId);
+            if (lockOwned.OwnerId == userId)
             {
                 return true;
             }
             
             //if not, check if user rented
             RentedQuerry rented = new RentedQuerry(Db);
-            Rented rent = await rented.FindOneByLockId(lock_id);
-            if (rent.UserId == user_id)
+            Rented rent = await rented.FindOneByLockUser(lockId, userId);
+            if (rent != null)
             {
                 return true;
             }
@@ -51,12 +51,12 @@ namespace Controllers
             return false;
         }
 
-        public async Task<Boolean> CheckLockOwner(int lock_id, int user_id)
+        public async Task<Boolean> CheckLockOwner(int lockId, int userId)
         {
             //check if user is owner
             LockQuerry lockQuerry = new LockQuerry(Db);
-            Lock lockOwned = await lockQuerry.FindLocksByLockIdAsync(lock_id);
-            if (lockOwned.OwnerId == user_id)
+            Lock lockOwned = await lockQuerry.FindLocksByLockIdAsync(lockId);
+            if (lockOwned.OwnerId == userId)
             {
                 return true;
             }

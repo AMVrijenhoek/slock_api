@@ -44,6 +44,26 @@ namespace Models
             return result.Count > 0 ? result[0] : null;
         }
         
+        public async Task<Rented> FindOneByLockUser(int lockId, int userId)
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText = @"SELECT id, lock_id, user_id, start, `end` FROM `rented` WHERE `lock_id` = @lock_id AND `user_id` = @user_id";
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@lock_id",
+                DbType = DbType.Int32,
+                Value = lockId,
+            });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@user_id",
+                DbType = DbType.Int32,
+                Value = userId,
+            });
+            var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
+            return result.Count > 0 ? result[0] : null;
+        }
+
         public async Task<Rented> FindOneByUserId(int userId)
         {
             using var cmd = Db.Connection.CreateCommand();

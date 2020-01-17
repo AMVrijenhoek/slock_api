@@ -311,7 +311,7 @@ namespace Controllers
         [Route("/v1/locks/{lockId}/token")]
         [ValidateModelState]
         [SwaggerOperation("LocksLockIdTokenGet")]
-        public virtual async Task<IActionResult> LocksLockIdTokenGet([FromRoute][Required]int lockId, [FromHeader][Required()]string token)
+        public async Task<IActionResult> LocksLockIdTokenGet([FromRoute][Required]int lockId, [FromHeader][Required()]string token)
         { 
             // this is the call to open lock
             // check if correct user
